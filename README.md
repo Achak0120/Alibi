@@ -16,8 +16,4 @@
 - ⚙️ Flask backend + HTML/CSS/JS frontend (React optional)
 - 🔒 No usage tracking. No external API keys required for testing.
 
----
-
-## 📁 Project Structure
-
 
