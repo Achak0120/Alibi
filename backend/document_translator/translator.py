@@ -1,4 +1,5 @@
 import pytesseract as pyt
+pyt.pytesseract.tesseract_cmd = r"C:/Program Files/Tesseract-OCR/tesseract.exe"
 from PIL import Image
 import deepl
 
@@ -8,7 +9,7 @@ def ocr_image(file_path):
     return text
 
 def translate_text(text, target_lang):
-    auth_key = "62488e5e-8323-4490-966d-24b60a1d6cb2:fx"
+    auth_key = "62488e5e-8323-4490-966d-24b60a1d6cb2"
     translator = deepl.Translator(auth_key)
     result = translator.translate_text(text, target_lang=target_lang)
     return result.text
