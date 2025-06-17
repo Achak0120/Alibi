@@ -1,6 +1,7 @@
 import pytesseract as pyt
 pyt.pytesseract.tesseract_cmd = r"C:/Program Files/Tesseract-OCR/tesseract.exe"
 from PIL import Image
+import os
 import deepl
 
 def ocr_image(file_path):
@@ -20,6 +21,8 @@ def process_document(file_path, target_lang):
     return translated_text
 
 if __name__=="__main__":
-    file = "medicalscreenshot.png"
+    file = "C:/Users/Aishik C/Desktop/Congressional Submission MAIN/CareBridge/backend/document_translator/medicalscreenshot.png"
     target_lang = "HI"
+    if not os.path.exists(file):
+        raise FileNotFoundError(f"File not found: {file}")
     print(process_document(file, target_lang))
