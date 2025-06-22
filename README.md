@@ -1,15 +1,15 @@
-# 🌍 LegalBridge – A Web App to Help Immigrants Understand Documents
+# 🌍 Alibi – A Web App to Help Immigrants Understand Documents
 
-**LegalBridge** is a full-stack web application that helps immigrants — documented or undocumented — understand important legal and medical documents in their native languages.
+**Alibi** is a full-stack web application that helps immigrants — documented or undocumented — understand important legal and medical documents in their native languages.
 
 The app runs fully offline on the backend, without any cloud APIs, user accounts, or internet-based AI services. Users interact through a web browser, and all document processing and AI chatbot functionality is powered by local, open-source Python modules.
 
 ---
 
-## 🧠 What LegalBridge Does
+## 🧠 What Alibi Does
 
 ### 📸 Image Translator (Image → Translated Image)
-Users can upload pictures of physical documents — such as medical records, legal notices, or government forms. LegalBridge will:
+Users can upload pictures of physical documents — such as medical records, legal notices, or government forms. Alibi will:
 - Extract all visible English text from the image
 - Translate it to the user’s chosen language
 - Rebuild the image with translated text in place of the original text
@@ -22,7 +22,7 @@ Users can ask questions in **any language** — and the chatbot will:
 - Translate the answer back into the user’s original language
 - Deliver the translated answer directly in the web interface
 
-> 🔐 LegalBridge does **not** offer legal advice. It provides general information and help only. No user data or documents are stored on the server.
+> 🔐 Alibi does **not** offer legal advice. It provides general information and help only. No user data or documents are stored on the server.
 
 ---
 
@@ -57,11 +57,9 @@ All processing happens in your own backend — **no external APIs, no cloud call
 ### ✅ Requirements
 
 - Python 3.9+
-- Node.js (for frontend, optional depending on stack)
 - Basic command line usage
 - 4–8 GB RAM (for local LLM model)
 - Internet access (for initial setup only)
-
 ---
 
 ### 📦 Backend Setup
@@ -69,8 +67,8 @@ All processing happens in your own backend — **no external APIs, no cloud call
 1. **Clone the Repo**
 
 ```bash
-git clone https://github.com/yourusername/legalbridge.git
-cd legalbridge/backend
+git clone https://github.com/yourusername/Alibi.git
+cd Alibi/backend
 
 
 
