@@ -1,1 +1,22 @@
+# Core Web Framework
+flask
 
+# OCR
+pytesseract
+pillow
+
+# Language Detection
+langdetect
+
+# Offline Translation
+argostranslate
+
+# Image Editing
+opencv-python
+
+# Local LLM (LLaMA models)
+llama-cpp-python
+
+# Optional - for file uploads & security
+flask-cors
+python-dotenv
