@@ -1,7 +1,15 @@
 from flask import Flask
-from document_translator.routes import translator_bp
-from NLP_chatbot.routes import chatbot_bp
+from flask import Blueprint, render_template, abort
+from jinja2 import TemplateNotFound
 
-app = Flask(__name__)
+alibi_entry = Blueprint('Alibi Entry Point', __name__,
+                        template_folder='templates')
 
-# Register Blueprints (moduelar routing)
+@alibi_entry.route('/', defaults={'page': 'index'})
+@alibi_entry.route('/<page>')
+
+def show(page):
+    try:
+        render_template(f'pages/{page}.html')
+    except TemplateNotFound:
+        abort(404)
