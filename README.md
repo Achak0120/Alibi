@@ -45,7 +45,7 @@ All processing happens in your own backend — **no external APIs, no cloud call
 | Frontend              | HTML/CSS/JS / React       |
 | API Server            | Python + Flask or FastAPI |
 | OCR                   | `pytesseract`             |
-| Translation (offline) | `argos-translate`         |
+| Translation (offline) | `libretranslate`          |
 | Language Detection    | `langdetect`              |
 | Local LLM             | `llama-cpp-python`        |
 | Image Editor          | `Pillow`, `OpenCV`        |
