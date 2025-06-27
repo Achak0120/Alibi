@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import request, send_file
-from flask import Blueprint, render_template, abort
+from flask import Blueprint, render_template, abort, flash, redirect, url_for
 from jinja2 import TemplateNotFound
 from document_translator import image_utils
 from document_translator import translator
@@ -23,6 +23,16 @@ app = Flask(__name__)
 app.register_blueprint(alibi_entry)
 @app.route('/upload-image', methods=['POST'])
 def upload_image():
-    request.files['image']
-    request.form['targetLanguage']
+    if request.method == 'POST':
+        if 'image' not in request.files:
+            flash('No image part')
+            return redirect(request.url)
+        file = request.files['image']
+        if file.filename == '':
+            flash("No selected image, please select an image or provide a name for existing image")
+            return redirect(request.url)
+    save_path = os.path.join('uploads', 'temp.jpg')
+    file.save(save_path)
     
+    extracted_text = image_utils.image_to_string(save_path)
+    lang = request.form['targetLanguage']
