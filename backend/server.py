@@ -3,7 +3,7 @@ from flask import request, send_file
 from flask import Blueprint, render_template, abort, flash, redirect, url_for
 from jinja2 import TemplateNotFound
 from document_translator import image_utils
-from document_translator import translator
+from document_translator import translate
 import os
 
 alibi_entry = Blueprint('Alibi Entry Point', __name__,
@@ -36,3 +36,4 @@ def upload_image():
     
     extracted_text = image_utils.image_to_string(save_path)
     lang = request.form['targetLanguage']
+    translator.translate()
