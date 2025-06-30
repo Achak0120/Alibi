@@ -36,7 +36,6 @@ def upload_image():
     
     extracted_text = image_utils.image_to_string(save_path)
     lang = request.form['targetLanguage']
-    translated_text = translator.translate(extracted_text, lang)
     image_utils.overlay_translated_text_on_image(
         original_image_path=save_path,
         lang=lang,
