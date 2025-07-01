@@ -48,3 +48,10 @@ def overlay_translated_text_on_image(original_image_path: str, lang: str, output
         # Add translated lines
         draw.text((x, y), translated_line, fill="black", font=font)
     image.save(output_path)
+    
+def image_to_string(image_path):
+    import pytesseract
+    from PIL import Image
+    text = pytesseract.image_to_string(Image.open(image_path))
+    print("[OCR OUTPUT]", text)
+    return text
