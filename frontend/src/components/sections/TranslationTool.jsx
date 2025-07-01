@@ -20,11 +20,19 @@ const TranslationTool = () => {
     if (!file) return;
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!validTypes.includes(file.type)) {
-      toast({ title: "Invalid file type", description: "Please upload a JPEG or PNG image.", variant: "destructive" });
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG or PNG image.",
+        variant: "destructive"
+      });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Please upload an image smaller than 10MB.", variant: "destructive" });
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 10MB.",
+        variant: "destructive"
+      });
       return;
     }
     setSelectedFile(file);
@@ -43,23 +51,44 @@ const TranslationTool = () => {
 
   const handleTranslate = async () => {
     if (!selectedFile) {
-      toast({ title: "No file selected", description: "Please upload an image first.", variant: "destructive" });
+      toast({
+        title: "No file selected",
+        description: "Please upload an image first.",
+        variant: "destructive"
+      });
       return;
     }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append('image', selectedFile);
       formData.append('targetLanguage', selectedLanguage);
-      const response = await fetch('/upload-image', { method: 'POST', body: formData });
-      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+      const response = await fetch('http://localhost:8000/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
       const result = await response.blob();
       const imageUrl = URL.createObjectURL(result);
       setTranslatedImage(imageUrl);
-      toast({ title: "Translation completed!", description: "Your document has been successfully translated." });
+
+      toast({
+        title: "Translation completed!",
+        description: "Your document has been successfully translated."
+      });
     } catch (error) {
       console.error('Translation error:', error);
-      toast({ title: "Translation failed", description: "🚧 This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀", variant: "destructive" });
+      toast({
+        title: "Translation failed",
+        description: "There was a problem translating your document.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -76,11 +105,24 @@ const TranslationTool = () => {
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
         <Card className="h-full glass-card">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2"><Upload className="w-5 h-5 text-purple-400" /><span>1. Upload Document</span></CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              <Upload className="w-5 h-5 text-purple-400" />
+              <span>1. Upload Document</span>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className={`upload-area rounded-lg p-8 text-center cursor-pointer ${dragOver ? 'dragover' : ''}`} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onClick={() => fileInputRef.current?.click()}>
-              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/jpg" onChange={handleFileInputChange} className="hidden" />
+            <div className={`upload-area rounded-lg p-8 text-center cursor-pointer ${dragOver ? 'dragover' : ''}`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => fileInputRef.current?.click()}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/jpg"
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
               {selectedFile ? (
                 <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-4">
                   <CheckCircle className="w-12 h-12 text-green-400 mx-auto" />
@@ -90,7 +132,9 @@ const TranslationTool = () => {
                         <FileImage className="w-6 h-6 text-purple-400 flex-shrink-0" />
                         <p className="font-medium text-gray-200 truncate">{selectedFile.name}</p>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); clearFile(); }}><X className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); clearFile(); }}>
+                        <X className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 </motion.div>
@@ -105,19 +149,36 @@ const TranslationTool = () => {
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">Target Language</label>
               <Select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="bg-secondary border-white/20">
-                {SUPPORTED_LANGUAGES.map((lang) => <option key={lang.code} value={lang.code}>{lang.name}</option>)}
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>{lang.name}</option>
+                ))}
               </Select>
             </div>
-            <Button onClick={handleTranslate} disabled={!selectedFile || isLoading} className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shine-effect">
-              {isLoading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Translating...</> : <><Languages className="w-5 h-5 mr-2" />Translate Document</>}
+            <Button onClick={handleTranslate} disabled={!selectedFile || isLoading}
+              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shine-effect">
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Translating...
+                </>
+              ) : (
+                <>
+                  <Languages className="w-5 h-5 mr-2" />
+                  Translate Document
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
       </motion.div>
+
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
         <Card className="h-full glass-card">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2"><FileImage className="w-5 h-5 text-purple-400" /><span>2. Review Translation</span></CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              <FileImage className="w-5 h-5 text-purple-400" />
+              <span>2. Review Translation</span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-black/20 rounded-lg p-4 min-h-[32rem] flex items-center justify-center border border-white/10">
@@ -130,7 +191,15 @@ const TranslationTool = () => {
                 ) : translatedImage ? (
                   <motion.div key="translated" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full space-y-4">
                     <img src={translatedImage} alt="Translated document" className="w-full h-auto rounded-lg shadow-lg" />
-                    <Button onClick={() => { const link = document.createElement('a'); link.href = translatedImage; link.download = `translated-${selectedFile?.name || 'document'}`; link.click(); }} className="w-full bg-green-600 hover:bg-green-700 text-white"><Download className="w-4 h-4 mr-2" />Download</Button>
+                    <Button onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = translatedImage;
+                      link.download = `translated-${selectedFile?.name || 'document'}`;
+                      link.click();
+                    }} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
                   </motion.div>
                 ) : selectedFile ? (
                   <motion.div key="preview" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full">
