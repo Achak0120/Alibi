@@ -15,8 +15,12 @@ def show(page):
         abort(404)
 
 app = Flask(__name__)
-CORS(app)  # <-- Allow requests from frontend
+CORS(app)
 app.register_blueprint(alibi_entry)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BASE_DIR, 'uploads')
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.route('/upload-image', methods=['POST'])
 def upload_image():
@@ -28,18 +32,20 @@ def upload_image():
         flash("No selected image, please select an image or provide a name for existing image")
         return redirect(request.url)
 
-    save_path = os.path.join('uploads', 'temp.jpg')
+    save_path = os.path.join(UPLOAD_DIR, 'temp.jpg')
     file.save(save_path)
 
     extracted_text = image_utils.image_to_string(save_path)
-    lang = request.form['targetLanguage']
+    lang = request.form.get('targetLanguage', 'en')
+    output_path = os.path.join(UPLOAD_DIR, "translated.png")
+
     image_utils.overlay_translated_text_on_image(
         original_image_path=save_path,
         lang=lang,
-        output_path="uploads/translated.png"
+        output_path=output_path
     )
-    return send_file("uploads/translated.png", mimetype="image/png")
 
+    return send_file(output_path, mimetype="image/png")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
