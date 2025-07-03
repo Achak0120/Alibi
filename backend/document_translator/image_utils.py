@@ -8,19 +8,220 @@ from collections import defaultdict
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Extracts readable English text from an image
-def image_to_string(image_path):
-    text = pytesseract.image_to_string(Image.open(image_path))
-    print("[OCR OUTPUT]", text)
-    return text
+def font_algorithm(lang_code: str, font_base_dir="C:/Fonts/Noto", default_font="arial.ttf") -> str:
+    """
+    Returns the best available font path for a given language code using internal font map.
+    Falls back to a default system font if not found.
+    """
+    LANGUAGE_FONT_MAP = {
+        'en': 'NotoSans-Regular.ttf',
+        'aa': 'NotoSans-Regular.ttf',
+        'ab': 'NotoSans-Regular.ttf',
+        'ae': 'NotoSans-Regular.ttf',
+        'af': 'NotoSans-Regular.ttf',
+        'ak': 'NotoSans-Regular.ttf',
+        'am': 'NotoSansEthiopic-Regular.ttf',
+        'an': 'NotoSans-Regular.ttf',
+        'ar': 'NotoNaskhArabic-Regular.ttf',
+        'as': 'NotoSansBengali-Regular.ttf',
+        'av': 'NotoSans-Regular.ttf',
+        'ay': 'NotoSans-Regular.ttf',
+        'az': 'NotoSans-Regular.ttf',
+        'ba': 'NotoSans-Regular.ttf',
+        'be': 'NotoSans-Regular.ttf',
+        'bg': 'NotoSans-Regular.ttf',
+        'bh': 'NotoSansDevanagari-Regular.ttf',
+        'bi': 'NotoSans-Regular.ttf',
+        'bm': 'NotoSans-Regular.ttf',
+        'bn': 'NotoSansBengali-Regular.ttf',
+        'bo': 'NotoSansTibetan-Regular.ttf',
+        'br': 'NotoSans-Regular.ttf',
+        'bs': 'NotoSans-Regular.ttf',
+        'ca': 'NotoSans-Regular.ttf',
+        'ce': 'NotoSans-Regular.ttf',
+        'ch': 'NotoSans-Regular.ttf',
+        'co': 'NotoSans-Regular.ttf',
+        'cr': 'NotoSansCanadianAboriginal-Regular.ttf',
+        'cs': 'NotoSans-Regular.ttf',
+        'cu': 'NotoSans-Regular.ttf',
+        'cv': 'NotoSans-Regular.ttf',
+        'cy': 'NotoSans-Regular.ttf',
+        'da': 'NotoSans-Regular.ttf',
+        'de': 'NotoSans-Regular.ttf',
+        'dv': 'NotoSansThaana-Regular.ttf',
+        'dz': 'NotoSansTibetan-Regular.ttf',
+        'ee': 'NotoSans-Regular.ttf',
+        'el': 'NotoSansGreek-Regular.ttf',
+        'eo': 'NotoSans-Regular.ttf',
+        'es': 'NotoSans-Regular.ttf',
+        'et': 'NotoSans-Regular.ttf',
+        'eu': 'NotoSans-Regular.ttf',
+        'fa': 'NotoNaskhArabic-Regular.ttf',
+        'ff': 'NotoSans-Regular.ttf',
+        'fi': 'NotoSans-Regular.ttf',
+        'fj': 'NotoSans-Regular.ttf',
+        'fo': 'NotoSans-Regular.ttf',
+        'fr': 'NotoSans-Regular.ttf',
+        'fy': 'NotoSans-Regular.ttf',
+        'ga': 'NotoSans-Regular.ttf',
+        'gd': 'NotoSans-Regular.ttf',
+        'gl': 'NotoSans-Regular.ttf',
+        'gn': 'NotoSans-Regular.ttf',
+        'gu': 'NotoSansGujarati-Regular.ttf',
+        'gv': 'NotoSans-Regular.ttf',
+        'ha': 'NotoSans-Regular.ttf',
+        'he': 'NotoSansHebrew-Regular.ttf',
+        'hi': 'NotoSansDevanagari-Regular.ttf',
+        'ho': 'NotoSans-Regular.ttf',
+        'hr': 'NotoSans-Regular.ttf',
+        'ht': 'NotoSans-Regular.ttf',
+        'hu': 'NotoSans-Regular.ttf',
+        'hy': 'NotoSansArmenian-Regular.ttf',
+        'hz': 'NotoSans-Regular.ttf',
+        'ia': 'NotoSans-Regular.ttf',
+        'id': 'NotoSans-Regular.ttf',
+        'ie': 'NotoSans-Regular.ttf',
+        'ig': 'NotoSans-Regular.ttf',
+        'ii': 'NotoSansYi-Regular.ttf',
+        'ik': 'NotoSans-Regular.ttf',
+        'io': 'NotoSans-Regular.ttf',
+        'is': 'NotoSans-Regular.ttf',
+        'it': 'NotoSans-Regular.ttf',
+        'iu': 'NotoSansCanadianAboriginal-Regular.ttf',
+        'ja': 'NotoSansJP-Regular.otf',
+        'jv': 'NotoSans-Regular.ttf',
+        'ka': 'NotoSansGeorgian-Regular.ttf',
+        'kg': 'NotoSans-Regular.ttf',
+        'ki': 'NotoSans-Regular.ttf',
+        'kj': 'NotoSans-Regular.ttf',
+        'kk': 'NotoSans-Regular.ttf',
+        'kl': 'NotoSans-Regular.ttf',
+        'km': 'NotoSansKhmer-Regular.ttf',
+        'kn': 'NotoSansKannada-Regular.ttf',
+        'ko': 'NotoSansKR-Regular.otf',
+        'kr': 'NotoSans-Regular.ttf',
+        'ks': 'NotoSans-Regular.ttf',
+        'ku': 'NotoSans-Regular.ttf',
+        'kv': 'NotoSans-Regular.ttf',
+        'kw': 'NotoSans-Regular.ttf',
+        'ky': 'NotoSans-Regular.ttf',
+        'la': 'NotoSans-Regular.ttf',
+        'lb': 'NotoSans-Regular.ttf',
+        'lg': 'NotoSans-Regular.ttf',
+        'li': 'NotoSans-Regular.ttf',
+        'ln': 'NotoSans-Regular.ttf',
+        'lo': 'NotoSansLao-Regular.ttf',
+        'lt': 'NotoSans-Regular.ttf',
+        'lu': 'NotoSans-Regular.ttf',
+        'lv': 'NotoSans-Regular.ttf',
+        'mg': 'NotoSans-Regular.ttf',
+        'mh': 'NotoSans-Regular.ttf',
+        'mi': 'NotoSans-Regular.ttf',
+        'mk': 'NotoSans-Regular.ttf',
+        'ml': 'NotoSansMalayalam-Regular.ttf',
+        'mn': 'NotoSansMongolian-Regular.ttf',
+        'mr': 'NotoSansDevanagari-Regular.ttf',
+        'ms': 'NotoSans-Regular.ttf',
+        'mt': 'NotoSans-Regular.ttf',
+        'my': 'NotoSansMyanmar-Regular.ttf',
+        'na': 'NotoSans-Regular.ttf',
+        'nb': 'NotoSans-Regular.ttf',
+        'nd': 'NotoSans-Regular.ttf',
+        'ne': 'NotoSansDevanagari-Regular.ttf',
+        'ng': 'NotoSans-Regular.ttf',
+        'nl': 'NotoSans-Regular.ttf',
+        'nn': 'NotoSans-Regular.ttf',
+        'no': 'NotoSans-Regular.ttf',
+        'nr': 'NotoSans-Regular.ttf',
+        'nv': 'NotoSans-Regular.ttf',
+        'ny': 'NotoSans-Regular.ttf',
+        'oc': 'NotoSans-Regular.ttf',
+        'oj': 'NotoSansCanadianAboriginal-Regular.ttf',
+        'om': 'NotoSans-Regular.ttf',
+        'or': 'NotoSansOriya-Regular.ttf',
+        'os': 'NotoSans-Regular.ttf',
+        'pa': 'NotoSansGurmukhi-Regular.ttf',
+        'pi': 'NotoSansDevanagari-Regular.ttf',
+        'pl': 'NotoSans-Regular.ttf',
+        'ps': 'NotoNaskhArabic-Regular.ttf',
+        'pt': 'NotoSans-Regular.ttf',
+        'qu': 'NotoSans-Regular.ttf',
+        'rm': 'NotoSans-Regular.ttf',
+        'rn': 'NotoSans-Regular.ttf',
+        'ro': 'NotoSans-Regular.ttf',
+        'ru': 'NotoSans-Regular.ttf',
+        'rw': 'NotoSans-Regular.ttf',
+        'sa': 'NotoSansDevanagari-Regular.ttf',
+        'sc': 'NotoSans-Regular.ttf',
+        'sd': 'NotoSansDevanagari-Regular.ttf',
+        'se': 'NotoSans-Regular.ttf',
+        'sg': 'NotoSans-Regular.ttf',
+        'si': 'NotoSansSinhala-Regular.ttf',
+        'sk': 'NotoSans-Regular.ttf',
+        'sl': 'NotoSans-Regular.ttf',
+        'sm': 'NotoSans-Regular.ttf',
+        'sn': 'NotoSans-Regular.ttf',
+        'so': 'NotoSans-Regular.ttf',
+        'sq': 'NotoSans-Regular.ttf',
+        'sr': 'NotoSans-Regular.ttf',
+        'ss': 'NotoSans-Regular.ttf',
+        'st': 'NotoSans-Regular.ttf',
+        'su': 'NotoSans-Regular.ttf',
+        'sv': 'NotoSans-Regular.ttf',
+        'sw': 'NotoSans-Regular.ttf',
+        'ta': 'NotoSansTamil-Regular.ttf',
+        'te': 'NotoSansTelugu-Regular.ttf',
+        'tg': 'NotoSans-Regular.ttf',
+        'th': 'NotoSansThai-Regular.ttf',
+        'ti': 'NotoSansEthiopic-Regular.ttf',
+        'tk': 'NotoSans-Regular.ttf',
+        'tl': 'NotoSans-Regular.ttf',
+        'tn': 'NotoSans-Regular.ttf',
+        'to': 'NotoSans-Regular.ttf',
+        'tr': 'NotoSans-Regular.ttf',
+        'ts': 'NotoSans-Regular.ttf',
+        'tt': 'NotoSans-Regular.ttf',
+        'tw': 'NotoSans-Regular.ttf',
+        'ty': 'NotoSans-Regular.ttf',
+        'ug': 'NotoSansArabic-Regular.ttf',
+        'uk': 'NotoSans-Regular.ttf',
+        'ur': 'NotoNastaliqUrdu-Regular.ttf',
+        'uz': 'NotoSans-Regular.ttf',
+        've': 'NotoSans-Regular.ttf',
+        'vi': 'NotoSans-Regular.ttf',
+        'vo': 'NotoSans-Regular.ttf',
+        'wa': 'NotoSans-Regular.ttf',
+        'wo': 'NotoSans-Regular.ttf',
+        'xh': 'NotoSans-Regular.ttf',
+        'yi': 'NotoSansHebrew-Regular.ttf',
+        'yo': 'NotoSans-Regular.ttf',
+        'za': 'NotoSans-Regular.ttf',
+        'zh': 'NotoSansSC-Regular.otf',
+        'zu': 'NotoSans-Regular.ttf'
+    }
 
+    font_file = LANGUAGE_FONT_MAP.get(lang_code, LANGUAGE_FONT_MAP['en'])  # fallback to English
+    font_path = os.path.join(font_base_dir, font_file)
+
+    if os.path.isfile(font_path):
+        return font_path
+
+    print(f"[font_algorithm] Font not found on disk for language '{lang_code}': {font_file}. Using fallback: {default_font}")
+    return default_font
+
+# Overlays translated text on image and saves it
 # Overlays translated text on image and saves it
 def overlay_translated_text_on_image(original_image_path: str, lang: str, output_path: str):
     image = Image.open(original_image_path)
     draw = ImageDraw.Draw(image)
 
-    # Use a readable TTF font
-    font_path = "C:/Windows/Fonts/arial.ttf"
-    font = ImageFont.truetype(font_path, size=20)
+    # Dynamically get best font path using the algorithm
+    font_path = font_algorithm(lang)  # uses the lang argument
+    try:
+        font = ImageFont.truetype(font_path, size=24)
+    except OSError:
+        print(f"[WARNING] Font file not found or invalid: {font_path}. Falling back to Arial.")
+        font = ImageFont.truetype("arial.ttf", size=24)
 
     data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
 
