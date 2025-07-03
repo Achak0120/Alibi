@@ -221,6 +221,5 @@ def download_noto_fonts(destination_dir="C:/Fonts/Noto"):
         if not success:
             print(f"[FAIL] Could not download: {font_file}")
 
-# Run this once to populate C:/Fonts/Noto
 if __name__ == "__main__":
     download_noto_fonts()
