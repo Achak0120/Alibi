@@ -4,7 +4,6 @@ import requests
 def download_noto_fonts(destination_dir="C:/Fonts/Noto"):
     os.makedirs(destination_dir, exist_ok=True)
 
-    # Language → font mapping (use your full LANGUAGE_FONT_MAP here)
     LANGUAGE_FONT_MAP = {
         'en': 'NotoSans-Regular.ttf',
         'aa': 'NotoSans-Regular.ttf',
