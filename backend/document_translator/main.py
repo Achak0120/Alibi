@@ -1,6 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 from deep_translator import GoogleTranslator
 import os, easyocr
+from font_map import LANGUAGE_FONT_MAP
+from server import lang
 
 
 def perform_ocr(image_path, reader):
@@ -156,11 +158,14 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes):
 
     return image
 
+def find_font(font_map: dict[str, str], lang_code: str) -> str:
+    return font_map.get(lang_code, 'NotoSans-Regular.ttf')
+
 # Initialize the OCR reader
 reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory = 'model')
 
 # Initialize the Translator
-translator = GoogleTranslator(source="en", target=pass) # REPLACE PASS WITH LANGUAGE FUNCTION
+translator = GoogleTranslator(source="en", target=lang)
 
 # Define input and output location
 input_folder = "input"

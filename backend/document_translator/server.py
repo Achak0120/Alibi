@@ -1,6 +1,6 @@
 from flask import Flask, request, send_file, Blueprint, render_template, abort, flash, redirect, url_for
 from jinja2 import TemplateNotFound
-from document_translator import image_utils
+from document_translator import main
 import os
 from flask_cors import CORS
 
