@@ -12,7 +12,6 @@ def perform_ocr(image_path, reader):
 
     return extracted_text_boxes
 
-
 def get_font(image, text, width, height):
 
     # Default values at start

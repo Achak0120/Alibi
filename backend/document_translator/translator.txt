@@ -1,9 +1,0 @@
-[User uploads image]
-     ↓
-[OCR detects text + positions (bounding boxes)]
-     ↓
-[Translate text offline (libretranslate)]
-     ↓
-[Draw translated text back onto the image at same positions]
-     ↓
-[Return final image to frontend]

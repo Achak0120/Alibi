@@ -151,7 +151,6 @@ LANGUAGE_FONT_MAP = {
         'sr': 'NotoSans-Regular.ttf',
         'ss': 'NotoSans-Regular.ttf',
         'st': 'NotoSans-Regular.ttf',
-        'su': 'NotoSans-Regular.ttf',
         'sv': 'NotoSans-Regular.ttf',
         'sw': 'NotoSans-Regular.ttf',
         'ta': 'NotoSansTamil-Regular.ttf',
