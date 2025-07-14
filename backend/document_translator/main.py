@@ -1,76 +1,66 @@
 from PIL import Image, ImageDraw, ImageFont
 from deep_translator import GoogleTranslator
-import os, easyocr
+import os
+import easyocr
 from font_map import LANGUAGE_FONT_MAP
-from server import lang
 
+# Font configs
+FONT_DIR = "C:/Fonts/Noto"
+
+def get_font_by_lang(lang_code: str, size: int = 20):
+    font_name = LANGUAGE_FONT_MAP.get(lang_code, 'NotoSans-Regular.ttf')
+    font_path = os.path.join(FONT_DIR, font_name)
+    if os.path.isfile(font_path):
+        return ImageFont.truetype(font_path, size)
+    else:
+        print(f"[WARN] Font not found for {lang_code}, using default.")
+        return ImageFont.load_default()
+
+# OCR Processing
 
 def perform_ocr(image_path, reader):
-    # Perform OCR on the image
-    result = reader.readtext(image_path, width_ths = 0.8,  decoder = 'wordbeamsearch')
-
-    # Extract text and bounding boxes from the OCR result
+    result = reader.readtext(image_path, width_ths=0.8, decoder='wordbeamsearch')
     extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > 0.4]
-
     return extracted_text_boxes
 
 def get_font(image, text, width, height, lang_code):
-
-    # Default values at start
-    font_size = None  # For font size
-    font = find_font(LANGUAGE_FONT_MAP, lang_code)  # For object truetype with correct font size
-    box = None  # For version 8.0.0
+    font_size = None
+    font = None
+    box = None
     x = 0
     y = 0
+    draw = ImageDraw.Draw(image)
 
-    draw = ImageDraw.Draw(image)  # Create a draw object
-
-    # Test for different font sizes
     for size in range(1, 500):
-
-        # Create new font
-        new_font = ImageFont.load_default(size=font_size)
-
-        # Calculate bbox for version 8.0.0
+        new_font = get_font_by_lang(lang_code, size)
         new_box = draw.textbbox((0, 0), text, font=new_font)
+        new_w = new_box[2] - new_box[0]
+        new_h = new_box[3] - new_box[1]
 
-        # Calculate width and height
-        new_w = new_box[2] - new_box[0]  # Bottom - Top
-        new_h = new_box[3] - new_box[1]  # Right - Left
-
-        # If too big then exit with previous values
         if new_w > width or new_h > height:
             break
 
-        # Set new current values as current values
         font_size = size
         font = new_font
         box = new_box
         w = new_w
         h = new_h
-
-        # Calculate position (minus margins in box)
-        x = (width - w) // 2 - box[0]  # Minus left margin
-        y = (height - h) // 2 - box[1]  # Minus top margin
+        x = (width - w) // 2 - box[0]
+        y = (height - h) // 2 - box[1]
 
     return font, x, y
-
 
 def add_discoloration(color, strength):
     r, g, b = color[:3]
     r = max(0, min(255, r + strength))
     g = max(0, min(255, g + strength))
     b = max(0, min(255, b + strength))
-
     if r == 255 and g == 255 and b == 255:
         r, g, b = 245, 245, 245
-
     return (r, g, b)
 
-
 def get_background_color(image, x_min, y_min, x_max, y_max):
-    image = image.convert('RGBA')  # Handle transparency
-
+    image = image.convert('RGBA')
     margin = 10
     edge_region = image.crop((
         max(x_min - margin, 0),
@@ -78,79 +68,50 @@ def get_background_color(image, x_min, y_min, x_max, y_max):
         min(x_max + margin, image.width),
         min(y_max + margin, image.height),
     ))
-
     pixels = list(edge_region.getdata())
     opaque_pixels = [pixel[:3] for pixel in pixels if pixel[3] > 0]
 
     if not opaque_pixels:
-        background_color = (255, 255, 255)  # fallback if all pixels are transparent
+        background_color = (255, 255, 255)
     else:
         from collections import Counter
         most_common = Counter(opaque_pixels).most_common(1)[0][0]
         background_color = most_common
 
-    background_color = add_discoloration(background_color, 40)
-    return background_color
-
+    return add_discoloration(background_color, 40)
 
 def get_text_fill_color(background_color):
-    # Calculate the luminance of the background color
     luminance = (
         0.299 * background_color[0]
         + 0.587 * background_color[1]
         + 0.114 * background_color[2]
     ) / 255
+    return "black" if luminance > 0.5 else "white"
 
-    # Determine the text color based on the background luminance
-    if luminance > 0.5:
-        return "black"  # Use black text for light backgrounds
-    else:
-        return "white"  # Use white text for dark backgrounds
-
-
-def replace_text_with_translation(image_path, translated_texts, text_boxes):
-    # Open the image
+def replace_text_with_translation(image_path, translated_texts, text_boxes, lang_code):
     image = Image.open(image_path)
     draw = ImageDraw.Draw(image)
 
-    # Load a font
-    font = ImageFont.load_default()
-
-    # Replace each text box with translated text
     for text_box, translated in zip(text_boxes, translated_texts):
-
         if translated is None:
             continue
 
-        # Set initial values
         x_min, y_min = text_box[0][0][0], text_box[0][0][1]
         x_max, y_max = text_box[0][0][0], text_box[0][0][1]
 
-        for coordinate in text_box[0]:
+        for x, y in text_box[0]:
+            x_min = min(x_min, x)
+            x_max = max(x_max, x)
+            y_min = min(y_min, y)
+            y_max = max(y_max, y)
 
-            x, y = coordinate
-
-            if x < x_min:
-                x_min = x
-            elif x > x_max:
-                x_max = x
-            if y < y_min:
-                y_min = y
-            elif y > y_max:
-                y_max = y
-
-        # Find the most common color in the text region
         background_color = get_background_color(image, x_min, y_min, x_max, y_max)
-
-        # Draw a rectangle to cover the text region with the original background color
         draw.rectangle(((x_min, y_min), (x_max, y_max)), fill=background_color)
 
-        # Calculate font size, box
-        font, x, y = get_font(image, translated, x_max - x_min, y_max - y_min)
+        font, x_offset, y_offset = get_font(image, translated, x_max - x_min, y_max - y_min, lang_code)
 
-        # Draw the translated text within the box
         draw.text(
-            (x_min + x, y_min + y),
+            (x_min + x_offset, y_min + y_offset),
             translated,
             fill=get_text_fill_color(background_color),
             font=font,
@@ -158,44 +119,40 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes):
 
     return image
 
-# Function to choose a font
-def find_font(font_map: dict[str, str], lang_code: str) -> str:
-    return font_map.get(lang_code, 'NotoSans-Regular.ttf')
-
-# Initialize the OCR reader
-reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory = 'model')
-
-# Initialize the Translator
-translator = GoogleTranslator(source="en", target=lang)
-
-# Define input and output location
-input_folder = "input"
-output_folder = "output"
-
-# Process each image file from input
-files = os.listdir(input_folder)
-image_files = [file for file in files if file.endswith((".jpg", ".jpeg", ".png"))]
-for filename in image_files:
-    
-    print(f'[INFO] Processing {filename}...')
-
-    image_path = os.path.join(input_folder, filename)
-
-    # Extract text and location
+def translate_image_pipeline(image_path, output_path, target_lang, font_map):
+    # OCR
     extracted_text_boxes = perform_ocr(image_path, reader)
 
-    # Translate texts
-    translated_texts = []
-    for text_box, text in extracted_text_boxes:
-        translated_texts.append(translator.translate(text))
+    # Translate text
+    translated_texts = [
+        translator.translate(text) for _, text in extracted_text_boxes
+    ]
 
-    # Replace text with translated text
-    image = replace_text_with_translation(image_path, translated_texts, extracted_text_boxes)
+    # Set global or chosen font
+    selected_lang_code = target_lang if target_lang in font_map else "en"
 
-    # Save modified image
-    base_filename, extension = os.path.splitext(filename)
-    output_filename = f"{base_filename}-translated{extension}"
-    output_path = os.path.join(output_folder, output_filename)
+    # Replace and draw text
+    image = replace_text_with_translation(
+    image_path, translated_texts, extracted_text_boxes, selected_lang_code
+    )
+
     image.save(output_path)
 
-    print(f'[INFO] Saved as {output_filename}...')
+# Script Setup
+reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory='model')
+translator = GoogleTranslator(source="en", target="es")
+if __name__ == "__main__":
+    input_folder = "input"
+    output_folder = "output"
+    files = os.listdir(input_folder)
+    image_files = [file for file in files if file.endswith((".jpg", ".jpeg", ".png"))]
+
+    for filename in image_files:
+        print(f'[INFO] Processing {filename}...')
+        image_path = os.path.join(input_folder, filename)
+        output_path = os.path.join(
+            output_folder,
+            f"{os.path.splitext(filename)[0]}-translated{os.path.splitext(filename)[1]}"
+        )
+        translate_image_pipeline(image_path, output_path, translator.target, LANGUAGE_FONT_MAP)
+        print(f'[INFO] Saved as {output_path}...')
