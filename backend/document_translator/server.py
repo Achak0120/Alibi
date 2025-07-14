@@ -1,6 +1,7 @@
 from flask import Flask, request, send_file, Blueprint, render_template, abort, flash, redirect, url_for
 from jinja2 import TemplateNotFound
 from document_translator import main
+from font_map import LANGUAGE_FONT_MAP
 import os
 from flask_cors import CORS
 
@@ -37,6 +38,7 @@ def upload_image():
 
     extracted_text = image_utils.image_to_string(save_path)
     lang = request.form.get('targetLanguage', 'en')
+    chosen_lang = main.find_font(LANGUAGE_FONT_MAP, lang)
     output_path = os.path.join(UPLOAD_DIR, "translated.png")
 
     image_utils.overlay_translated_text_on_image(

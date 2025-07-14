@@ -14,11 +14,11 @@ def perform_ocr(image_path, reader):
 
     return extracted_text_boxes
 
-def get_font(image, text, width, height):
+def get_font(image, text, width, height, lang_code):
 
     # Default values at start
     font_size = None  # For font size
-    font = None  # For object truetype with correct font size
+    font = find_font(LANGUAGE_FONT_MAP, lang_code)  # For object truetype with correct font size
     box = None  # For version 8.0.0
     x = 0
     y = 0
@@ -158,6 +158,7 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes):
 
     return image
 
+# Function to choose a font
 def find_font(font_map: dict[str, str], lang_code: str) -> str:
     return font_map.get(lang_code, 'NotoSans-Regular.ttf')
 
