@@ -17,7 +17,6 @@ def get_font_by_lang(lang_code: str, size: int = 20):
         return ImageFont.load_default()
 
 # OCR Processing
-
 def perform_ocr(image_path, reader):
     result = reader.readtext(image_path, width_ths=0.8, decoder='wordbeamsearch')
     extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > 0.4]
@@ -124,6 +123,7 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     extracted_text_boxes = perform_ocr(image_path, reader)
 
     # Translate text
+    translator = GoogleTranslator(source="en", target=target_lang)
     translated_texts = [
         translator.translate(text) for _, text in extracted_text_boxes
     ]
@@ -140,7 +140,6 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
 
 # Script Setup
 reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory='model')
-translator = GoogleTranslator(source="en", target="es")
 if __name__ == "__main__":
     input_folder = "input"
     output_folder = "output"
