@@ -5,7 +5,7 @@ import easyocr
 from font_map import LANGUAGE_FONT_MAP
 
 # Font configs
-FONT_DIR = "C:/Users/Aishik C/Desktop/Congressional Submission MAIN/CareBridge/backend/Noto"
+FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
 
 def get_font_by_lang(lang_code: str, size: int = 20):
     font_name = LANGUAGE_FONT_MAP.get(lang_code, 'NotoSans-Regular.ttf')
