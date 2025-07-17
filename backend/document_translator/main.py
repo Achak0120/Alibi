@@ -1,8 +1,9 @@
-from PIL import Image, ImageDraw, ImageFont
 from deep_translator import GoogleTranslator
-import os
-import easyocr
+from PIL import Image, ImageDraw, ImageFont
 from font_map import LANGUAGE_FONT_MAP
+import easyocr
+import sys
+import os
 
 # Font configs
 FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
@@ -140,9 +141,12 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
 
 # Script Setup
 reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory='model')
+
 if __name__ == "__main__":
     input_folder = "input"
     output_folder = "output"
+    target_lang = sys.argv[1] if len(sys.argv) > 1 else "en"
+
     files = os.listdir(input_folder)
     image_files = [file for file in files if file.endswith((".jpg", ".jpeg", ".png"))]
 
@@ -153,5 +157,5 @@ if __name__ == "__main__":
             output_folder,
             f"{os.path.splitext(filename)[0]}-translated{os.path.splitext(filename)[1]}"
         )
-        translate_image_pipeline(image_path, output_path, translator.target, LANGUAGE_FONT_MAP)
+        translate_image_pipeline(image_path, output_path, target_lang, LANGUAGE_FONT_MAP)
         print(f'[INFO] Saved as {output_path}...')
