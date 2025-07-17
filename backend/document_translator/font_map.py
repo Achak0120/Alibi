@@ -18,7 +18,7 @@ LANGUAGE_FONT_MAP = {
         'bh': 'NotoSansDevanagari-Regular.ttf',
         'bi': 'NotoSans-Regular.ttf',
         'bm': 'NotoSans-Regular.ttf',
-        'bn': 'NotoSansBengali-Regular.ttf',
+        'bn': 'NotoSansBengaliUI-Regular.ttf',
         'bo': 'NotoSansTibetan-Regular.ttf',
         'br': 'NotoSans-Regular.ttf',
         'bs': 'NotoSans-Regular.ttf',
