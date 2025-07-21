@@ -18,8 +18,8 @@ LANGUAGE_FONT_MAP = {
         'bh': 'NotoSansDevanagari-Regular.ttf',
         'bi': 'NotoSans-Regular.ttf',
         'bm': 'NotoSans-Regular.ttf',
-        'bn': 'NotoSansBengaliUI-Regular.ttf',
-        'bo': 'NotoSansTibetan-Regular.ttf',
+        'bn': 'NotoSansBengali-Regular.ttf',
+        'bo': 'NotoSerifTibetan-Regular.ttf',
         'br': 'NotoSans-Regular.ttf',
         'bs': 'NotoSans-Regular.ttf',
         'ca': 'NotoSans-Regular.ttf',
@@ -34,9 +34,9 @@ LANGUAGE_FONT_MAP = {
         'da': 'NotoSans-Regular.ttf',
         'de': 'NotoSans-Regular.ttf',
         'dv': 'NotoSansThaana-Regular.ttf',
-        'dz': 'NotoSansTibetan-Regular.ttf',
+        'dz': 'NotoSerifTibetan-Regular.ttf',
         'ee': 'NotoSans-Regular.ttf',
-        'el': 'NotoSansGreek-Regular.ttf',
+        'el': 'NotoSansGreek-Regular.ttf', #####
         'eo': 'NotoSans-Regular.ttf',
         'es': 'NotoSans-Regular.ttf',
         'et': 'NotoSans-Regular.ttf',
@@ -73,7 +73,7 @@ LANGUAGE_FONT_MAP = {
         'is': 'NotoSans-Regular.ttf',
         'it': 'NotoSans-Regular.ttf',
         'iu': 'NotoSansCanadianAboriginal-Regular.ttf',
-        'ja': 'NotoSansJP-Regular.otf',
+        'ja': 'NotoSansJP-Regular.otf', ##Japanese??? I downloaded the japanese one
         'jv': 'NotoSans-Regular.ttf',
         'ka': 'NotoSansGeorgian-Regular.ttf',
         'kg': 'NotoSans-Regular.ttf',
@@ -83,7 +83,7 @@ LANGUAGE_FONT_MAP = {
         'kl': 'NotoSans-Regular.ttf',
         'km': 'NotoSansKhmer-Regular.ttf',
         'kn': 'NotoSansKannada-Regular.ttf',
-        'ko': 'NotoSansKR-Regular.otf',
+        'ko': 'NotoSansKR-Regular.otf', ##Korean???
         'kr': 'NotoSans-Regular.ttf',
         'ks': 'NotoSans-Regular.ttf',
         'ku': 'NotoSans-Regular.ttf',
@@ -180,6 +180,6 @@ LANGUAGE_FONT_MAP = {
         'yi': 'NotoSansHebrew-Regular.ttf',
         'yo': 'NotoSans-Regular.ttf',
         'za': 'NotoSans-Regular.ttf',
-        'zh': 'NotoSansSC-Regular.otf',
+        'zh': 'NotoSansSC-Regular.otf', ###
         'zu': 'NotoSans-Regular.ttf'
     }
