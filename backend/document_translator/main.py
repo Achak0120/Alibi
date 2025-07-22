@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 from deep_translator import GoogleTranslator
 from font_map import LANGUAGE_FONT_MAP
+import numpy as np
 import easyocr
 import sys
 import os
@@ -37,7 +38,10 @@ def preprocess_image_for_ocr(image_path):
 # OCR Processing
 def perform_ocr(image_path, reader):
     preprocessed_image = preprocess_image_for_ocr(image_path)
-    result = reader.readtext(preprocessed_image, width_ths=0.8, decoder='wordbeamsearch')
+    
+    # Convert PIL object to numpy array
+    np_image = np.array(preprocessed_image)
+    result = reader.readtext(np_image, width_ths=0.8, decoder='wordbeamsearch')
     extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > 0.4]
     return extracted_text_boxes
 
