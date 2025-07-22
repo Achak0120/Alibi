@@ -1,5 +1,5 @@
-from deep_translator import GoogleTranslator
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
+from deep_translator import GoogleTranslator
 from font_map import LANGUAGE_FONT_MAP
 import easyocr
 import sys
