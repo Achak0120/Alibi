@@ -1,5 +1,5 @@
 from deep_translator import GoogleTranslator
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 from font_map import LANGUAGE_FONT_MAP
 import easyocr
 import sys
@@ -16,10 +16,28 @@ def get_font_by_lang(lang_code: str, size: int = 20):
     else:
         print(f"[WARN] Font not found for {lang_code}, using default.")
         return ImageFont.load_default()
+    
+# Preprocess inserted image for better translation
+def preprocess_image_for_ocr(image_path):
+    image = Image.open(image_path).convert("RGB")
+
+    # Convert to grayscale
+    gray_image = ImageOps.grayscale(image)
+
+    # Enhance contrast
+    contrast_enhancer = ImageEnhance.Contrast(gray_image)
+    contrast_image = contrast_enhancer.enhance(2.5)  # Increase contrast
+
+    # Binarize (optional, can help with white/colored text)
+    threshold = 180
+    binarized_image = contrast_image.point(lambda x: 0 if x < threshold else 255, mode='1')
+
+    return binarized_image
 
 # OCR Processing
 def perform_ocr(image_path, reader):
-    result = reader.readtext(image_path, width_ths=0.8, decoder='wordbeamsearch')
+    preprocessed_image = preprocess_image_for_ocr(image_path)
+    result = reader.readtext(preprocessed_image, width_ths=0.8, decoder='wordbeamsearch')
     extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > 0.4]
     return extracted_text_boxes
 
