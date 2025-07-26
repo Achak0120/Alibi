@@ -3,6 +3,7 @@ from deep_translator import GoogleTranslator
 from font_map import LANGUAGE_FONT_MAP
 import numpy as np
 import easyocr
+import cv2
 import sys
 import os
 
@@ -17,7 +18,7 @@ def get_font_by_lang(lang_code: str, size: int = 20):
     else:
         print(f"[WARN] Font not found for {lang_code}, using default.")
         return ImageFont.load_default()
-    
+
 # Preprocess inserted image for better translation
 def preprocess_image_for_ocr(image_path):
     image = Image.open(image_path).convert("RGB")
@@ -31,7 +32,7 @@ def preprocess_image_for_ocr(image_path):
 
     # Binarize (optional, can help with white/colored text)
     threshold = 180
-    binarized_image = contrast_image.point(lambda x: 0 if x < threshold else 255, mode='1')
+    binarized_image = contrast_image.point(lambda x: 0 if x < threshold else 255).convert("L")
 
     return binarized_image
 
