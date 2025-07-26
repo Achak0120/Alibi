@@ -1,7 +1,10 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
+from realesrgan.archs.rrdbnet_arch import RRDBNet
+from basicsr.archs.rrdbnet_arch import RRDBNet as BasicRRDBNet  # Fallback
+from realesrgan.utils import RealESRGANer
 from deep_translator import GoogleTranslator
 from font_map import LANGUAGE_FONT_MAP
-from realesrgan import RealESRGAN
+from realesrgan import RealESRGANer
 import numpy as np
 import easyocr
 import torch
@@ -170,10 +173,19 @@ def replace_text_with_translation(image, translated_texts, text_boxes, lang_code
 
 def enhance_image_with_realesrgan(image_path, scale=2):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = RealESRGAN(device, scale=scale)
-    model.load_weights(f'RealESRGAN_x{scale}.pth')  # Auto-downloads
+    model = RealESRGANer(
+        scale=scale,
+        model_path = f'RealESRGAN_x{scale}.pth',
+        dni_weight=None,
+        tile=0,
+        tile_pad=10,
+        pre_pad=0,
+        half=torch.cuda.is_available(),
+        device=device,
+        )
     image = Image.open(image_path).convert("RGB")
-    sr_image = model.predict(image)
+    sr_image_np, _ = model.enhance(np.array(image), outscale=scale)
+    sr_image = Image.fromarray(sr_image_np)
     return sr_image
 
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
