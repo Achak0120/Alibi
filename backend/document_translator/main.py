@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
-from googletrans import Translator
 from font_map import LANGUAGE_FONT_MAP
 import numpy as np
+import deepl
 import easyocr
 import cv2
 import sys
@@ -143,22 +143,16 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes, lang
     return image
 
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
+    # Translator with API Key --> Hidden in Environment Variables
+    translator = deepl.Translator(os.environ["DEEPL_API_KEY"])
     # OCR
     extracted_text_boxes = perform_ocr(image_path, reader)
 
     # Translate text
-    translator = Translator()
-    translated_texts = []
-    for _, text in extracted_text_boxes:
-        if not text:
-            translated_texts.append(None)
-            continue
-        try:
-            result = translator.translate(text, src="en", dest=target_lang)
-            translated_texts.append(result.text)
-        except Exception as e:
-            print(f"[ERROR] Failed to translate '{text}': {e}")
-            translated_texts.append(None)
+    translated_texts = [
+        translator.translate(text, src="en", dest=target_lang).text if text else None
+        for _, text in extracted_text_boxes
+    ]
 
     # Set global or chosen font
     selected_lang_code = target_lang if target_lang in font_map else "en"
