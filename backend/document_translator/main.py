@@ -1,13 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
-from realesrgan.archs.rrdbnet_arch import RRDBNet
-from basicsr.archs.rrdbnet_arch import RRDBNet as BasicRRDBNet  # Fallback
-from realesrgan.utils import RealESRGANer
 from deep_translator import GoogleTranslator
 from font_map import LANGUAGE_FONT_MAP
-from realesrgan import RealESRGANer
 import numpy as np
 import easyocr
-import torch
 import cv2
 import sys
 import os
@@ -25,8 +20,8 @@ def get_font_by_lang(lang_code: str, size: int = 20):
         return ImageFont.load_default()
 
 # Preprocess inserted image for better translation
-def preprocess_image_for_ocr(pil_image):
-    image = pil_image.convert("RGB")
+def preprocess_image_for_ocr(image_path):
+    image = Image.open(image_path).convert("RGB")
 
     # Convert to grayscale
     gray_image = ImageOps.grayscale(image)
@@ -41,39 +36,15 @@ def preprocess_image_for_ocr(pil_image):
 
     return binarized_image
 
-
-def perform_ocr_with_tiling(pil_image, reader, tile_size=(600, 600), overlap=100):
-    image = np.array(pil_image)
-    height, width = image.shape[:2]
-    results = []
-
-    for y in range(0, height, tile_size[1] - overlap):
-        for x in range(0, width, tile_size[0] - overlap):
-            x_end = min(x + tile_size[0], width)
-            y_end = min(y + tile_size[1], height)
-
-            tile = image[y:y_end, x:x_end]
-            tile_results = reader.readtext(tile, width_ths=0.8, decoder='wordbeamsearch')
-
-            # Adjust box coordinates relative to original image
-            for res in tile_results:
-                coords = [[pt[0] + x, pt[1] + y] for pt in res[0]]
-                results.append((coords, res[1], res[2]))
-
-    # Unduplicate based on box center
-    seen = set()
-    filtered = []
-    for box in results:
-        center = tuple(np.mean(box[0], axis=0).astype(int))
-        if center not in seen:
-            seen.add(center)
-            filtered.append((box[0], box[1]))
-    return filtered
-
 # OCR Processing
-def perform_ocr(pil_image, reader):
-    preprocessed_image = preprocess_image_for_ocr(pil_image)
-    return perform_ocr_with_tiling(preprocessed_image, reader)
+def perform_ocr(image_path, reader):
+    preprocessed_image = preprocess_image_for_ocr(image_path)
+    
+    # Convert PIL object to numpy array
+    np_image = np.array(preprocessed_image)
+    result = reader.readtext(np_image, width_ths=0.8, decoder='wordbeamsearch')
+    extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > 0.4]
+    return extracted_text_boxes
 
 def get_font(image, text, width, height, lang_code):
     font_size = None
@@ -140,8 +111,8 @@ def get_text_fill_color(background_color):
     ) / 255
     return "black" if luminance > 0.5 else "white"
 
-def replace_text_with_translation(image, translated_texts, text_boxes, lang_code):
-    image = image.copy()
+def replace_text_with_translation(image_path, translated_texts, text_boxes, lang_code):
+    image = Image.open(image_path)
     draw = ImageDraw.Draw(image)
 
     for text_box, translated in zip(text_boxes, translated_texts):
@@ -171,44 +142,25 @@ def replace_text_with_translation(image, translated_texts, text_boxes, lang_code
 
     return image
 
-def enhance_image_with_realesrgan(image_path, scale=2):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = RealESRGANer(
-        scale=scale,
-        model_path = f'RealESRGAN_x{scale}.pth',
-        dni_weight=None,
-        tile=0,
-        tile_pad=10,
-        pre_pad=0,
-        half=torch.cuda.is_available(),
-        device=device,
-        )
-    image = Image.open(image_path).convert("RGB")
-    sr_image_np, _ = model.enhance(np.array(image), outscale=scale)
-    sr_image = Image.fromarray(sr_image_np)
-    return sr_image
-
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
-    # Enhance Resolution
-    enhanced_image = enhance_image_with_realesrgan(image_path)
-    
-    # OCR on cleaned-up enhanced image
-    extracted_text_boxes = perform_ocr(enhanced_image, reader)
-    
-    # Translate detected texts
+    # OCR
+    extracted_text_boxes = perform_ocr(image_path, reader)
+
+    # Translate text
     translator = GoogleTranslator(source="en", target=target_lang)
     translated_texts = [
         translator.translate(text) for _, text in extracted_text_boxes
     ]
-    
-    # Replace original text with translated
+
+    # Set global or chosen font
     selected_lang_code = target_lang if target_lang in font_map else "en"
-    translated_image = replace_text_with_translation(
-        enhanced_image, translated_texts, extracted_text_boxes, selected_lang_code
+
+    # Replace and draw text
+    image = replace_text_with_translation(
+    image_path, translated_texts, extracted_text_boxes, selected_lang_code
     )
-    
-    # Save final translated image
-    translated_image.save(output_path)
+
+    image.save(output_path)
 
 # Script Setup
 reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory='model')
@@ -230,4 +182,3 @@ if __name__ == "__main__":
         )
         translate_image_pipeline(image_path, output_path, target_lang, LANGUAGE_FONT_MAP)
         print(f'[INFO] Saved as {output_path}...')
-    print(f"[INFO] Using device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
