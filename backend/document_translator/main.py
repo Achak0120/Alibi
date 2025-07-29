@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
-from deep_translator import GoogleTranslator
+from googletrans import Translator
 from font_map import LANGUAGE_FONT_MAP
 import numpy as np
 import easyocr
@@ -147,10 +147,18 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     extracted_text_boxes = perform_ocr(image_path, reader)
 
     # Translate text
-    translator = GoogleTranslator(source="en", target=target_lang)
-    translated_texts = [
-        translator.translate(text) for _, text in extracted_text_boxes
-    ]
+    translator = Translator()
+    translated_texts = []
+    for _, text in extracted_text_boxes:
+        if not text:
+            translated_texts.append(None)
+            continue
+        try:
+            result = translator.translate(text, src="en", dest=target_lang)
+            translated_texts.append(result.text)
+        except Exception as e:
+            print(f"[ERROR] Failed to translate '{text}': {e}")
+            translated_texts.append(None)
 
     # Set global or chosen font
     selected_lang_code = target_lang if target_lang in font_map else "en"
