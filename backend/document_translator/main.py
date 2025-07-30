@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
+from googletrans import Translator as GoogleTranslator
 from font_map import LANGUAGE_FONT_MAP
 import numpy as np
 import deepl
@@ -143,27 +144,62 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes, lang
     return image
 
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
-    # Translator with API Key --> Hidden in Environment Variables
-    translator = deepl.Translator(os.environ["DEEPL_API_KEY"])
     # OCR
     extracted_text_boxes = perform_ocr(image_path, reader)
 
-    # Translate text
-    translated_texts = [
-        translator.translate(text, src="en", dest=target_lang).text if text else None
-        for _, text in extracted_text_boxes
-    ]
+    # Get font fallback
+    selected_lang_code = target_lang.lower()
+    if selected_lang_code not in font_map:
+        selected_lang_code = "en"
 
-    # Set global or chosen font
-    selected_lang_code = target_lang if target_lang in font_map else "en"
+    # DeepL setup
+    deepl_translator = deepl.Translator(os.environ["DEEPL_API_KEY"])
+    deepl_supported = {lang.code.lower(): lang.name for lang in deepl_translator.get_target_languages()}
+
+    # Google fallback setup
+    google_translator = GoogleTranslator()
+    translated_texts = []
+    cache = {}
+
+    for _, text in extracted_text_boxes:
+        if not text:
+            translated_texts.append(None)
+            continue
+
+        if text in cache:
+            translated_texts.append(cache[text])
+            continue
+
+        try:
+            # Use DeepL if supported
+            if target_lang.lower() in deepl_supported:
+                result = deepl_translator.translate_text(
+                    text,
+                    source_lang="EN",
+                    target_lang=target_lang.upper()
+                )
+                translated = result.text
+                print(f"[DeepL] {text} → {translated}")
+            else:
+                # Use Google Translate as fallback
+                result = google_translator.translate(text, src="en", dest=target_lang)
+                translated = result.text
+                print(f"[Google] {text} → {translated}")
+
+            cache[text] = translated
+            translated_texts.append(translated)
+
+        except Exception as e:
+            print(f"[ERROR] Failed to translate '{text}': {e}")
+            translated_texts.append(None)
 
     # Replace and draw text
     image = replace_text_with_translation(
-    image_path, translated_texts, extracted_text_boxes, selected_lang_code
+        image_path, translated_texts, extracted_text_boxes, selected_lang_code
     )
 
     image.save(output_path)
-
+    
 # Script Setup
 reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory='model')
 
