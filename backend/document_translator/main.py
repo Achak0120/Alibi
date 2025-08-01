@@ -1,7 +1,9 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 from googletrans import Translator as GoogleTranslator
+from spellchecker import SpellChecker
 from font_map import LANGUAGE_FONT_MAP
 import numpy as np
+import wordninja
 import deepl
 import easyocr
 import cv2
@@ -31,7 +33,7 @@ def preprocess_image_for_ocr(image_path):
     contrast_enhancer = ImageEnhance.Contrast(gray_image)
     contrast_image = contrast_enhancer.enhance(2.5)  # Increase contrast
 
-    # Binarize (optional, can help with white/colored text)
+    # Binarize
     threshold = 180
     binarized_image = contrast_image.point(lambda x: 0 if x < threshold else 255).convert("L")
 
@@ -40,11 +42,16 @@ def preprocess_image_for_ocr(image_path):
 # OCR Processing
 def perform_ocr(image_path, reader):
     preprocessed_image = preprocess_image_for_ocr(image_path)
-    
+
     # Convert PIL object to numpy array
     np_image = np.array(preprocessed_image)
+
+    # Perform OCR
     result = reader.readtext(np_image, width_ths=0.8, decoder='wordbeamsearch')
-    extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > 0.4]
+
+    OCR_CONFIDENCE_THRESHOLD = 0.1  # or even 0.0 if you want everything
+    extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > OCR_CONFIDENCE_THRESHOLD]
+    
     return extracted_text_boxes
 
 def get_font(image, text, width, height, lang_code):
@@ -161,36 +168,40 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     translated_texts = []
     cache = {}
 
+    spell = SpellChecker()
     for _, text in extracted_text_boxes:
         if not text:
             translated_texts.append(None)
             continue
 
-        if text in cache:
-            translated_texts.append(cache[text])
+        # Auto-correct each word in the text
+        words = text.split()
+        corrected_words = [spell.correction(w) or w for w in words]
+        corrected_text = " ".join(corrected_words)
+
+        if corrected_text in cache:
+            translated_texts.append(cache[corrected_text])
             continue
 
         try:
-            # Use DeepL if supported
             if target_lang.lower() in deepl_supported:
                 result = deepl_translator.translate_text(
-                    text,
+                    corrected_text,
                     source_lang="EN",
                     target_lang=target_lang.upper()
                 )
                 translated = result.text
-                print(f"[DeepL] {text} → {translated}")
+                print(f"[DeepL] {corrected_text} → {translated}")
             else:
-                # Use Google Translate as fallback
-                result = google_translator.translate(text, src="en", dest=target_lang)
+                result = google_translator.translate(corrected_text, src="en", dest=target_lang)
                 translated = result.text
-                print(f"[Google] {text} → {translated}")
+                print(f"[Google] {corrected_text} → {translated}")
 
-            cache[text] = translated
+            cache[corrected_text] = translated
             translated_texts.append(translated)
 
         except Exception as e:
-            print(f"[ERROR] Failed to translate '{text}': {e}")
+            print(f"[ERROR] Failed to translate '{corrected_text}': {e}")
             translated_texts.append(None)
 
     # Replace and draw text
