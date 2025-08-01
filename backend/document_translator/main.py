@@ -174,34 +174,45 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
             translated_texts.append(None)
             continue
 
-        # Auto-correct each word in the text
+        # Spell-correct
         words = text.split()
         corrected_words = [spell.correction(w) or w for w in words]
         corrected_text = " ".join(corrected_words)
 
-        if corrected_text in cache:
-            translated_texts.append(cache[corrected_text])
+        # Wordninja split long garbled words
+        split_words = []
+        for word in corrected_text.split():
+            if len(word) > 10:
+                split_words.extend(wordninja.split(word))
+            else:
+                split_words.append(word)
+        final_text = " ".join(split_words)
+
+        # Cache
+        if final_text in cache:
+            translated_texts.append(cache[final_text])
             continue
 
+        # Translate
         try:
             if target_lang.lower() in deepl_supported:
                 result = deepl_translator.translate_text(
-                    corrected_text,
+                    final_text,
                     source_lang="EN",
                     target_lang=target_lang.upper()
                 )
                 translated = result.text
-                print(f"[DeepL] {corrected_text} → {translated}")
+                print(f"[DeepL] {final_text} → {translated}")
             else:
-                result = google_translator.translate(corrected_text, src="en", dest=target_lang)
+                result = google_translator.translate(final_text, src="en", dest=target_lang)
                 translated = result.text
-                print(f"[Google] {corrected_text} → {translated}")
+                print(f"[Google] {final_text} → {translated}")
 
-            cache[corrected_text] = translated
+            cache[final_text] = translated
             translated_texts.append(translated)
 
         except Exception as e:
-            print(f"[ERROR] Failed to translate '{corrected_text}': {e}")
+            print(f"[ERROR] Failed to translate '{final_text}': {e}")
             translated_texts.append(None)
 
     # Replace and draw text
