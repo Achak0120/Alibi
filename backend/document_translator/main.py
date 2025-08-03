@@ -13,6 +13,9 @@ import os
 # Font configs
 FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
 
+def is_junk(text):
+    return sum(1 for c in text if not c.isalnum() and c not in '.,:;!?') > len(text) * 0.4
+
 def get_font_by_lang(lang_code: str, size: int = 20):
     font_name = LANGUAGE_FONT_MAP.get(lang_code, 'NotoSans-Regular.ttf')
     font_path = os.path.join(FONT_DIR, font_name)
@@ -173,7 +176,11 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
         if not text:
             translated_texts.append(None)
             continue
-
+        if is_junk(text):
+            print(f"[SKIP] Skipped junk: {text}")
+            translated_texts.append(None)
+            continue
+        
         # Spell-correct
         words = text.split()
         corrected_words = [spell.correction(w) or w for w in words]
