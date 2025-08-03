@@ -13,6 +13,8 @@ import os
 
 # Font configs
 FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
+# Google Vision API Key Path
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\Aishik C\Desktop\vision_key.json"
 
 def is_junk(text):
     return sum(1 for c in text if not c.isalnum() and c not in '.,:;!?') > len(text) * 0.4
