@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 from googletrans import Translator as GoogleTranslator
 from spellchecker import SpellChecker
 from font_map import LANGUAGE_FONT_MAP
+from google.cloud import vision
 import numpy as np
 import wordninja
 import deepl
@@ -42,21 +43,27 @@ def preprocess_image_for_ocr(image_path):
 
     return binarized_image
 
-# OCR Processing
-def perform_ocr(image_path, reader):
-    preprocessed_image = preprocess_image_for_ocr(image_path)
-
-    # Convert PIL object to numpy array
-    np_image = np.array(preprocessed_image)
-
-    # Perform OCR
-    result = reader.readtext(np_image, width_ths=0.8, decoder='wordbeamsearch')
-
-    OCR_CONFIDENCE_THRESHOLD = 0.1  # or even 0.0 if you want everything
-    extracted_text_boxes = [(entry[0], entry[1]) for entry in result if entry[2] > OCR_CONFIDENCE_THRESHOLD]
+# OCR Processing with Google Vision API
+def perform_ocr_with_google_vision(image_path):
+    client = vision.ImageAnnotatorClient()
+    
+    with open(image_path, "rb") as image_file:
+        content = image_file.read()
+        
+    image = vision.Image(content=content)
+    response = client.text_detection(image=image)
+    annotations = response.text_annotations
+    
+    extracted_text_boxes = []
+    
+    if annotations:
+        for annotation in annotations[1:]:
+            vertices = [(v.x, v.y) for v in annotation.bounding_poly.vertices]
+            text = annotation.description
+            extracted_text_boxes.append((vertices, text))
     
     return extracted_text_boxes
-
+            
 def get_font(image, text, width, height, lang_code):
     font_size = None
     font = None
@@ -155,7 +162,7 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes, lang
 
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     # OCR
-    extracted_text_boxes = perform_ocr(image_path, reader)
+    extracted_text_boxes = perform_ocr_with_google_vision(image_path)
 
     # Get font fallback
     selected_lang_code = target_lang.lower()
@@ -230,7 +237,6 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     image.save(output_path)
     
 # Script Setup
-reader = easyocr.Reader(["ch_sim", "en"], model_storage_directory='model')
 
 if __name__ == "__main__":
     input_folder = "input"
