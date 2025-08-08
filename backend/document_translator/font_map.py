@@ -1,6 +1,6 @@
 LANGUAGE_FONT_MAP = {
     'aa': 'NotoSansEthiopic-Regular.ttf',           # Afar
-    'ab': 'NotoSansRegular-Regular.ttf',            # Abkhazian
+    'ab': 'NotoSans-Regular.ttf',                   # Abkhazian
     'ae': 'NotoSansAvestan-Regular.ttf',            # Avestan
     'ak': 'NotoSans-Regular.ttf',                   # Akan (Latin)
     'an': 'NotoSans-Regular.ttf',                   # Aragonese
@@ -81,4 +81,5 @@ LANGUAGE_FONT_MAP = {
     'wa': 'NotoSans-Regular.ttf',                   # Walloon
     'wo': 'NotoSans-Regular.ttf',                   # Wolof
     'za': 'NotoSans-Regular.ttf',                   # Zhuang/Chuang
+    'zh': 'NotoSansSC-Regular.otf'                  # Chinese
 }
