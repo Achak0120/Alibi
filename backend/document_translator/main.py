@@ -3,6 +3,7 @@ from googletrans import Translator as GoogleTranslator
 from spellchecker import SpellChecker
 from font_map import LANGUAGE_FONT_MAP
 from google.cloud import vision
+import unicodedata
 import numpy as np
 import wordninja
 import deepl
@@ -15,6 +16,27 @@ import os
 FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
 # Google Vision API Key Path
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\Aishik C\Desktop\vision_key.json"
+
+def normalize_lang_code(code: str) -> str:
+    if not code: return "en"
+    c = code.lower().replace('_', '-')
+    # collapse region variants to base ISO 639-1
+    if c.startswith('zh'): return 'zh'   # zh, zh-cn, zh-tw → zh
+    if c.startswith('pt'): return 'pt'
+    if c.startswith('en'): return 'en'
+    if c.startswith('sr'): return 'sr'   # example
+    return c.split('-')[0]               # nn-NO → nn
+
+def debug_text(text: str, lang_code: str, font_file: str):
+    print(f"[DBG] lang={lang_code} font={font_file}")
+    print(f"[DBG] text='{text}'")
+    codepoints = [f"U+{ord(c):04X}" for c in text]
+    names = []
+    for c in text:
+        try: names.append(unicodedata.name(c))
+        except: names.append('UNKNOWN')
+    print(f"[DBG] cps={codepoints}")
+    print(f"[DBG] names={names}")
 
 def is_junk(text):
     return sum(1 for c in text if not c.isalnum() and c not in '.,:;!?') > len(text) * 0.4
@@ -151,6 +173,9 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes, lang
         background_color = get_background_color(image, x_min, y_min, x_max, y_max)
         draw.rectangle(((x_min, y_min), (x_max, y_max)), fill=background_color)
 
+        font_name = LANGUAGE_FONT_MAP.get(lang_code, 'NotoSans-Regular.ttf')
+        debug_text(translated, lang_code, font_name)
+        
         font, x_offset, y_offset = get_font(image, translated, x_max - x_min, y_max - y_min, lang_code)
 
         draw.text(
