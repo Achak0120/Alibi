@@ -1,183 +1,84 @@
 LANGUAGE_FONT_MAP = {
-    'en': 'NotoSans-Regular.ttf',
-    'aa': 'NotoSansEthiopic-Regular.ttf',  # Afar
-    'ab': 'NotoSansCyrillic-Regular.ttf',  # Abkhazian
-    'ae': 'NotoSansAvestan-Regular.ttf',   # Avestan
-    'af': 'NotoSans-Regular.ttf',
-    'ak': 'NotoSans-Regular.ttf',          # Akan
-    'am': 'NotoSansEthiopic-Regular.ttf',
-    'an': 'NotoSans-Regular.ttf',          # Aragonese
-    'ar': 'NotoNaskhArabic-Regular.ttf',
-    'as': 'NotoSansBengali-Regular.ttf',
-    'av': 'NotoSansCyrillic-Regular.ttf',  # Avaric
-    'ay': 'NotoSans-Regular.ttf',          # Aymara
-    'az': 'NotoSans-Regular.ttf',
-    'ba': 'NotoSansCyrillic-Regular.ttf',  # Bashkir
-    'be': 'NotoSansCyrillic-Regular.ttf',
-    'bg': 'NotoSansCyrillic-Regular.ttf',
-    'bh': 'NotoSansDevanagari-Regular.ttf',  # Bihari
-    'bi': 'NotoSans-Regular.ttf',
-    'bm': 'NotoSans-Regular.ttf',
-    'bn': 'NotoSansBengali-Regular.ttf',
-    'bo': 'NotoSerifTibetan-Regular.ttf',
-    'br': 'NotoSans-Regular.ttf',
-    'bs': 'NotoSans-Regular.ttf',
-    'ca': 'NotoSans-Regular.ttf',
-    'ce': 'NotoSansCyrillic-Regular.ttf',
-    'ch': 'NotoSans-Regular.ttf',
-    'cr': 'NotoSansCanadianAboriginal-Regular.ttf',
-    'cs': 'NotoSans-Regular.ttf',
-    'cu': 'NotoSansCyrillic-Regular.ttf',
-    'cv': 'NotoSansCyrillic-Regular.ttf',
-    'cy': 'NotoSans-Regular.ttf',
-    'da': 'NotoSans-Regular.ttf',
-    'de': 'NotoSans-Regular.ttf',
-    'dv': 'NotoSansThaana-Regular.ttf',
-    'dz': 'NotoSerifTibetan-Regular.ttf',
-    'ee': 'NotoSans-Regular.ttf',
-    'el': 'NotoSansGreek-Regular.ttf',
-    'eo': 'NotoSans-Regular.ttf',
-    'es': 'NotoSans-Regular.ttf',
-    'et': 'NotoSans-Regular.ttf',
-    'eu': 'NotoSans-Regular.ttf',
-    'fa': 'NotoNaskhArabic-Regular.ttf',
-    'ff': 'NotoSansAdlam-Regular.ttf',
-    'fi': 'NotoSans-Regular.ttf',
-    'fj': 'NotoSans-Regular.ttf',
-    'fo': 'NotoSans-Regular.ttf',
-    'fr': 'NotoSans-Regular.ttf',
-    'fy': 'NotoSans-Regular.ttf',
-    'ga': 'NotoSans-Regular.ttf',
-    'gd': 'NotoSans-Regular.ttf',
-    'gl': 'NotoSans-Regular.ttf',
-    'gn': 'NotoSans-Regular.ttf',
-    'gu': 'NotoSansGujarati-Regular.ttf',
-    'gv': 'NotoSans-Regular.ttf',
-    'ha': 'NotoSans-Regular.ttf',
-    'he': 'NotoSansHebrew-Regular.ttf',
-    'hi': 'NotoSansDevanagari-Regular.ttf',
-    'ho': 'NotoSans-Regular.ttf',
-    'hr': 'NotoSans-Regular.ttf',
-    'ht': 'NotoSans-Regular.ttf',
-    'hu': 'NotoSans-Regular.ttf',
-    'hy': 'NotoSansArmenian-Regular.ttf',
-    'hz': 'NotoSans-Regular.ttf',
-    'ia': 'NotoSans-Regular.ttf',
-    'id': 'NotoSans-Regular.ttf',
-    'ie': 'NotoSans-Regular.ttf',
-    'ig': 'NotoSans-Regular.ttf',
-    'ii': 'NotoSansYi-Regular.ttf',
-    'ik': 'NotoSans-Regular.ttf',
-    'io': 'NotoSans-Regular.ttf',
-    'is': 'NotoSans-Regular.ttf',
-    'it': 'NotoSans-Regular.ttf',
-    'iu': 'NotoSansCanadianAboriginal-Regular.ttf',
-    'ja': 'NotoSansJP-Regular.otf',
-    'jv': 'NotoSansJavanese-Regular.ttf',
-    'ka': 'NotoSansGeorgian-Regular.ttf',
-    'kg': 'NotoSans-Regular.ttf',
-    'ki': 'NotoSans-Regular.ttf',
-    'kj': 'NotoSans-Regular.ttf',
-    'kl': 'NotoSans-Regular.ttf',
-    'km': 'NotoSansKhmer-Regular.ttf',
-    'kn': 'NotoSansKannada-Regular.ttf',
-    'ko': 'NotoSansKR-Regular.otf',
-    'kr': 'NotoSans-Regular.ttf',
-    'ks': 'NotoSansDevanagari-Regular.ttf',
-    'ku': 'NotoSansArabic-Regular.ttf',
-    'kv': 'NotoSansCyrillic-Regular.ttf',
-    'kw': 'NotoSans-Regular.ttf',
-    'ky': 'NotoSansCyrillic-Regular.ttf',
-    'la': 'NotoSans-Regular.ttf',
-    'lb': 'NotoSans-Regular.ttf',
-    'lg': 'NotoSans-Regular.ttf',
-    'li': 'NotoSans-Regular.ttf',
-    'ln': 'NotoSans-Regular.ttf',
-    'lo': 'NotoSansLao-Regular.ttf',
-    'lt': 'NotoSans-Regular.ttf',
-    'lu': 'NotoSans-Regular.ttf',
-    'lv': 'NotoSans-Regular.ttf',
-    'mg': 'NotoSans-Regular.ttf',
-    'mh': 'NotoSans-Regular.ttf',
-    'mi': 'NotoSans-Regular.ttf',
-    'mk': 'NotoSansCyrillic-Regular.ttf',
-    'ml': 'NotoSansMalayalam-Regular.ttf',
-    'mn': 'NotoSansMongolian-Regular.ttf',
-    'mr': 'NotoSansDevanagari-Regular.ttf',
-    'ms': 'NotoSans-Regular.ttf',
-    'mt': 'NotoSans-Regular.ttf',
-    'my': 'NotoSansMyanmar-Regular.ttf',
-    'na': 'NotoSans-Regular.ttf',
-    'nb': 'NotoSans-Regular.ttf',
-    'nd': 'NotoSans-Regular.ttf',
-    'ne': 'NotoSansDevanagari-Regular.ttf',
-    'ng': 'NotoSans-Regular.ttf',
-    'nl': 'NotoSans-Regular.ttf',
-    'nn': 'NotoSans-Regular.ttf',
-    'no': 'NotoSans-Regular.ttf',
-    'nr': 'NotoSans-Regular.ttf',
-    'nv': 'NotoSans-Regular.ttf',
-    'ny': 'NotoSans-Regular.ttf',
-    'oc': 'NotoSans-Regular.ttf',
-    'oj': 'NotoSansCanadianAboriginal-Regular.ttf',
-    'om': 'NotoSans-Regular.ttf',
-    'or': 'NotoSansOriya-Regular.ttf',
-    'os': 'NotoSansCyrillic-Regular.ttf',
-    'pa': 'NotoSansGurmukhi-Regular.ttf',
-    'pi': 'NotoSansDevanagari-Regular.ttf',
-    'pl': 'NotoSans-Regular.ttf',
-    'ps': 'NotoNaskhArabic-Regular.ttf',
-    'pt': 'NotoSans-Regular.ttf',
-    'qu': 'NotoSans-Regular.ttf',
-    'rm': 'NotoSans-Regular.ttf',
-    'rn': 'NotoSans-Regular.ttf',
-    'ro': 'NotoSans-Regular.ttf',
-    'ru': 'NotoSansCyrillic-Regular.ttf',
-    'rw': 'NotoSans-Regular.ttf',
-    'sa': 'NotoSansDevanagari-Regular.ttf',
-    'sc': 'NotoSans-Regular.ttf',
-    'sd': 'NotoSansDevanagari-Regular.ttf',
-    'se': 'NotoSans-Regular.ttf',
-    'sg': 'NotoSans-Regular.ttf',
-    'si': 'NotoSansSinhala-Regular.ttf',
-    'sk': 'NotoSans-Regular.ttf',
-    'sl': 'NotoSans-Regular.ttf',
-    'sm': 'NotoSans-Regular.ttf',
-    'sn': 'NotoSans-Regular.ttf',
-    'so': 'NotoSans-Regular.ttf',
-    'sq': 'NotoSans-Regular.ttf',
-    'sr': 'NotoSansCyrillic-Regular.ttf',
-    'ss': 'NotoSans-Regular.ttf',
-    'st': 'NotoSans-Regular.ttf',
-    'sv': 'NotoSans-Regular.ttf',
-    'sw': 'NotoSans-Regular.ttf',
-    'ta': 'NotoSansTamil-Regular.ttf',
-    'te': 'NotoSansTelugu-Regular.ttf',
-    'tg': 'NotoSansCyrillic-Regular.ttf',
-    'th': 'NotoSansThai-Regular.ttf',
-    'ti': 'NotoSansEthiopic-Regular.ttf',
-    'tk': 'NotoSansCyrillic-Regular.ttf',
-    'tl': 'NotoSans-Regular.ttf',
-    'tn': 'NotoSans-Regular.ttf',
-    'to': 'NotoSans-Regular.ttf',
-    'tr': 'NotoSans-Regular.ttf',
-    'ts': 'NotoSans-Regular.ttf',
-    'tt': 'NotoSansCyrillic-Regular.ttf',
-    'tw': 'NotoSans-Regular.ttf',
-    'ty': 'NotoSans-Regular.ttf',
-    'ug': 'NotoSansArabic-Regular.ttf',
-    'uk': 'NotoSansCyrillic-Regular.ttf',
-    'ur': 'NotoNastaliqUrdu-Regular.ttf',
-    'uz': 'NotoSansCyrillic-Regular.ttf',
-    've': 'NotoSans-Regular.ttf',
-    'vi': 'NotoSans-Regular.ttf',
-    'vo': 'NotoSans-Regular.ttf',
-    'wa': 'NotoSans-Regular.ttf',
-    'wo': 'NotoSans-Regular.ttf',
-    'xh': 'NotoSans-Regular.ttf',
-    'yi': 'NotoSansHebrew-Regular.ttf',
-    'yo': 'NotoSans-Regular.ttf',
-    'za': 'NotoSans-Regular.ttf',
-    'zh': 'NotoSansSC-Regular.otf',
-    'zu': 'NotoSans-Regular.ttf'
+    'aa': 'NotoSansEthiopic-Regular.ttf',           # Afar
+    'ab': 'NotoSansCyrillic-Regular.ttf',           # Abkhazian
+    'ae': 'NotoSansAvestan-Regular.ttf',            # Avestan
+    'ak': 'NotoSans-Regular.ttf',                   # Akan (Latin)
+    'an': 'NotoSans-Regular.ttf',                   # Aragonese
+    'as': 'NotoSansBengali-Regular.ttf',            # Assamese
+    'av': 'NotoSansCyrillic-Regular.ttf',           # Avaric
+    'ay': 'NotoSans-Regular.ttf',                   # Aymara
+    'ba': 'NotoSansCyrillic-Regular.ttf',           # Bashkir
+    'bh': 'NotoSansDevanagari-Regular.ttf',         # Bihari languages
+    'bi': 'NotoSans-Regular.ttf',                   # Bislama
+    'bm': 'NotoSans-Regular.ttf',                   # Bambara
+    'bo': 'NotoSerifTibetan-Regular.ttf',           # Tibetan
+    'br': 'NotoSans-Regular.ttf',                   # Breton
+    'ce': 'NotoSansCyrillic-Regular.ttf',           # Chechen
+    'ch': 'NotoSans-Regular.ttf',                   # Chamorro
+    'cr': 'NotoSansCanadianAboriginal-Regular.ttf', # Cree
+    'cu': 'NotoSansCyrillic-Regular.ttf',           # Church Slavic
+    'cv': 'NotoSansCyrillic-Regular.ttf',           # Chuvash
+    'dv': 'NotoSansThaana-Regular.ttf',             # Divehi
+    'dz': 'NotoSerifTibetan-Regular.ttf',           # Dzongkha
+    'eu': 'NotoSans-Regular.ttf',                   # Basque
+    'ff': 'NotoSansAdlam-Regular.ttf',              # Fulah
+    'fj': 'NotoSans-Regular.ttf',                   # Fijian
+    'fo': 'NotoSans-Regular.ttf',                   # Faroese
+    'gn': 'NotoSans-Regular.ttf',                   # Guarani
+    'gv': 'NotoSans-Regular.ttf',                   # Manx
+    'ho': 'NotoSans-Regular.ttf',                   # Hiri Motu
+    'hz': 'NotoSans-Regular.ttf',                   # Herero
+    'ia': 'NotoSans-Regular.ttf',                   # Interlingua
+    'ie': 'NotoSans-Regular.ttf',                   # Interlingue
+    'ii': 'NotoSansYi-Regular.ttf',                 # Sichuan Yi
+    'ik': 'NotoSansCanadianAboriginal-Regular.ttf', # Inupiaq
+    'io': 'NotoSans-Regular.ttf',                   # Ido
+    'iu': 'NotoSansCanadianAboriginal-Regular.ttf', # Inuktitut
+    'jv': 'NotoSansJavanese-Regular.ttf',           # Javanese
+    'kg': 'NotoSans-Regular.ttf',                   # Kongo
+    'ki': 'NotoSans-Regular.ttf',                   # Kikuyu
+    'kj': 'NotoSans-Regular.ttf',                   # Kuanyama
+    'kl': 'NotoSans-Regular.ttf',                   # Greenlandic
+    'kr': 'NotoSans-Regular.ttf',                   # Kanuri
+    'ks': 'NotoSansDevanagari-Regular.ttf',         # Kashmiri
+    'kv': 'NotoSansCyrillic-Regular.ttf',           # Komi
+    'kw': 'NotoSans-Regular.ttf',                   # Cornish
+    'lg': 'NotoSans-Regular.ttf',                   # Ganda
+    'li': 'NotoSans-Regular.ttf',                   # Limburgan
+    'ln': 'NotoSans-Regular.ttf',                   # Lingala
+    'lu': 'NotoSans-Regular.ttf',                   # Luba-Katanga
+    'mh': 'NotoSans-Regular.ttf',                   # Marshallese
+    'na': 'NotoSans-Regular.ttf',                   # Nauru
+    'nd': 'NotoSans-Regular.ttf',                   # North Ndebele
+    'ng': 'NotoSans-Regular.ttf',                   # Ndonga
+    'nn': 'NotoSans-Regular.ttf',                   # Norwegian Nynorsk
+    'nr': 'NotoSans-Regular.ttf',                   # South Ndebele
+    'nv': 'NotoSans-Regular.ttf',                   # Navajo
+    'oc': 'NotoSans-Regular.ttf',                   # Occitan
+    'oj': 'NotoSansCanadianAboriginal-Regular.ttf', # Ojibwa
+    'om': 'NotoSans-Regular.ttf',                   # Oromo
+    'os': 'NotoSansCyrillic-Regular.ttf',           # Ossetic
+    'pi': 'NotoSansDevanagari-Regular.ttf',         # Pali
+    'qu': 'NotoSans-Regular.ttf',                   # Quechua
+    'rm': 'NotoSans-Regular.ttf',                   # Romansh
+    'rn': 'NotoSans-Regular.ttf',                   # Rundi
+    'rw': 'NotoSans-Regular.ttf',                   # Kinyarwanda
+    'sa': 'NotoSansDevanagari-Regular.ttf',         # Sanskrit
+    'sc': 'NotoSans-Regular.ttf',                   # Sardinian
+    'se': 'NotoSans-Regular.ttf',                   # Northern Sami
+    'sg': 'NotoSans-Regular.ttf',                   # Sango
+    'ss': 'NotoSans-Regular.ttf',                   # Swati
+    'ti': 'NotoSansEthiopic-Regular.ttf',           # Tigrinya
+    'tk': 'NotoSansCyrillic-Regular.ttf',           # Turkmen
+    'tn': 'NotoSans-Regular.ttf',                   # Tswana
+    'to': 'NotoSans-Regular.ttf',                   # Tonga
+    'ts': 'NotoSans-Regular.ttf',                   # Tsonga
+    'tt': 'NotoSansCyrillic-Regular.ttf',           # Tatar
+    'tw': 'NotoSans-Regular.ttf',                   # Twi
+    'ty': 'NotoSans-Regular.ttf',                   # Tahitian
+    've': 'NotoSans-Regular.ttf',                   # Venda
+    'vo': 'NotoSans-Regular.ttf',                   # Volapük
+    'wa': 'NotoSans-Regular.ttf',                   # Walloon
+    'wo': 'NotoSans-Regular.ttf',                   # Wolof
+    'za': 'NotoSans-Regular.ttf',                   # Zhuang/Chuang
 }
