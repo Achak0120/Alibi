@@ -1,3 +1,4 @@
+# server.py
 import os
 import sys
 from flask import Flask, request, send_file, Blueprint, render_template, abort, flash, redirect
@@ -17,6 +18,9 @@ sys.path.append(DOC_TRANS_DIR)
 from font_map import LANGUAGE_FONT_MAP
 import main as translator_main
 
+# NEW: import router
+from translator_router import build_router
+
 # Flask app setup
 app = Flask(__name__)
 CORS(app)
@@ -24,6 +28,10 @@ CORS(app)
 # Create input/output dirs
 os.makedirs(INPUT_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Build router ONCE at startup, using the language codes you actually expose
+PRODUCT_CODES = set(LANGUAGE_FONT_MAP.keys())  # or pull from your SUPPORTED_LANGUAGES if you prefer
+ROUTER = build_router(PRODUCT_CODES)
 
 # Blueprint
 alibi_entry = Blueprint('Alibi Entry Point', __name__, template_folder='templates')
@@ -54,14 +62,24 @@ def upload_image():
     input_path = os.path.join(INPUT_DIR, 'temp.jpg')
     file.save(input_path)
 
-    lang = request.form.get('targetLanguage', 'en')
+    requested_lang = request.form.get('targetLanguage', 'en')
     output_path = os.path.join(OUTPUT_DIR, 'translated.png')
 
+    # NEW: pick a provider and normalized code
+    try:
+        service, norm_code = ROUTER.pick(requested_lang)
+    except Exception as e:
+        # Fail fast with a clear message the frontend can show
+        return (str(e), 400)
+
+    # OPTIONAL: if your pipeline can accept service + normalized code, pass them.
+    # If it can't yet, at minimum pass norm_code instead of raw requested_lang.
     translator_main.translate_image_pipeline(
         image_path=input_path,
         output_path=output_path,
-        target_lang=lang,
-        font_map=LANGUAGE_FONT_MAP
+        target_lang=norm_code,        # << use normalized code
+        font_map=LANGUAGE_FONT_MAP,
+        service_hint=service          # << add this param in your pipeline (see note below)
     )
 
     return send_file(output_path, mimetype="image/png")

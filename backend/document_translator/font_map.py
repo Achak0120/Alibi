@@ -1,102 +1,59 @@
 LANGUAGE_FONT_MAP = {
     'en': 'NotoSans-Regular.ttf',                   # English
 
-    'aa': 'NotoSans-Regular.ttf',                   # Afar
-    'ab': 'NotoSans-Regular.ttf',                   # Abkhazian
-    'ae': 'NotoSansAvestan-Regular.ttf',            # Avestan
     'af': 'NotoSans-Regular.ttf',                   # Afrikaans
-    'ak': 'NotoSans-Regular.ttf',                   # Akan (Latin)
     'sq': 'NotoSans-Regular.ttf',                   # Albanian
     'am': 'NotoSansEthiopic-Regular.ttf',           # Amharic
     'ar': 'NotoNaskhArabic-Regular.ttf',            # Arabic
-    'an': 'NotoSans-Regular.ttf',                   # Aragonese
     'hy': 'NotoSansArmenian-Regular.ttf',           # Armenian
     'as': 'NotoSansBengali-Regular.ttf',            # Assamese
-    'av': 'NotoSans-Regular.ttf',                   # Avaric
-    'ay': 'NotoSans-Regular.ttf',                   # Aymara
     'az': 'NotoSans-Regular.ttf',                   # Azerbaijani
-    'bm': 'NotoSans-Regular.ttf',                   # Bambara
-    'ba': 'NotoSans-Regular.ttf',                   # Bashkir
     'eu': 'NotoSans-Regular.ttf',                   # Basque
     'be': 'NotoSans-Regular.ttf',                   # Belarusian
     'bn': 'NotoSansBengali-Regular.ttf',            # Bengali
-    'bh': 'NotoSansDevanagari-Regular.ttf',         # Bihari languages
-    'bi': 'NotoSans-Regular.ttf',                   # Bislama
     'bs': 'NotoSans-Regular.ttf',                   # Bosnian
-    'br': 'NotoSans-Regular.ttf',                   # Breton
     'bg': 'NotoSans-Regular.ttf',                   # Bulgarian
     'my': 'NotoSansMyanmar-Regular.ttf',            # Burmese
     'ca': 'NotoSans-Regular.ttf',                   # Catalan
-    'ch': 'NotoSans-Regular.ttf',                   # Chamorro
-    'ce': 'NotoSans-Regular.ttf',                   # Chechen
-    'ny': 'NotoSans-Regular.ttf',                   # Chichewa
     'zh': 'NotoSansSC-Regular.otf',                 # Chinese
-    'cv': 'NotoSans-Regular.ttf',                   # Chuvash
-    'kw': 'NotoSans-Regular.ttf',                   # Cornish
-    'co': 'NotoSans-Regular.ttf',                   # Corsican
-    'cr': 'NotoSansCanadianAboriginal-Regular.ttf', # Cree
     'hr': 'NotoSans-Regular.ttf',                   # Croatian
     'cs': 'NotoSans-Regular.ttf',                   # Czech
     'da': 'NotoSans-Regular.ttf',                   # Danish
     'dv': 'NotoSansThaana-Regular.ttf',             # Divehi
     'nl': 'NotoSans-Regular.ttf',                   # Dutch
-    'dz': 'NotoSerifTibetan-Regular.ttf',           # Dzongkha
     'eo': 'NotoSans-Regular.ttf',                   # Esperanto
     'et': 'NotoSans-Regular.ttf',                   # Estonian
-    'ee': 'NotoSans-Regular.ttf',                   # Ewe
-    'fo': 'NotoSans-Regular.ttf',                   # Faroese
-    'fj': 'NotoSans-Regular.ttf',                   # Fijian
     'fi': 'NotoSans-Regular.ttf',                   # Finnish
     'fr': 'NotoSans-Regular.ttf',                   # French
-    'ff': 'NotoSansAdlam-Regular.ttf',              # Fulah
-    'gd': 'NotoSans-Regular.ttf',                   # Gaelic (Scottish)
     'gl': 'NotoSans-Regular.ttf',                   # Galician
-    'lg': 'NotoSans-Regular.ttf',                   # Ganda
     'ka': 'NotoSansGeorgian-Regular.ttf',           # Georgian
     'de': 'NotoSans-Regular.ttf',                   # German
     'el': 'NotoSansGreek-Regular.ttf',              # Greek
-    'gn': 'NotoSans-Regular.ttf',                   # Guarani
     'gu': 'NotoSansGujarati-Regular.ttf',           # Gujarati
     'ht': 'NotoSans-Regular.ttf',                   # Haitian
     'ha': 'NotoSans-Regular.ttf',                   # Hausa
     'he': 'NotoSansHebrew-Regular.ttf',             # Hebrew
-    'hz': 'NotoSans-Regular.ttf',                   # Herero
     'hi': 'NotoSansDevanagari-Regular.ttf',         # Hindi
-    'ho': 'NotoSans-Regular.ttf',                   # Hiri Motu
     'hu': 'NotoSans-Regular.ttf',                   # Hungarian
     'is': 'NotoSans-Regular.ttf',                   # Icelandic
-    'io': 'NotoSans-Regular.ttf',                   # Ido
     'ig': 'NotoSans-Regular.ttf',                   # Igbo
     'id': 'NotoSans-Regular.ttf',                   # Indonesian
-    'ia': 'NotoSans-Regular.ttf',                   # Interlingua
-    'ie': 'NotoSans-Regular.ttf',                   # Interlingue
     'iu': 'NotoSansCanadianAboriginal-Regular.ttf', # Inuktitut
-    'ik': 'NotoSansCanadianAboriginal-Regular.ttf', # Inupiaq
     'ga': 'NotoSans-Regular.ttf',                   # Irish
     'it': 'NotoSans-Regular.ttf',                   # Italian
     'ja': 'NotoSansJP-Regular.otf',                 # Japanese
-    'jv': 'NotoSansJavanese-Regular.ttf',           # Javanese
-    'kl': 'NotoSans-Regular.ttf',                   # Kalaallisut (Greenlandic)
     'kn': 'NotoSansKannada-Regular.ttf',            # Kannada
-    'kr': 'NotoSans-Regular.ttf',                   # Kanuri
     'ks': 'NotoSansDevanagari-Regular.ttf',         # Kashmiri
     'kk': 'NotoSans-Regular.ttf',                   # Kazakh
     'km': 'NotoSansKhmer-Regular.ttf',              # Khmer
-    'ki': 'NotoSans-Regular.ttf',                   # Kikuyu
     'rw': 'NotoSans-Regular.ttf',                   # Kinyarwanda
-    'ky': 'NotoSans-Regular.ttf',                   # Kyrgyz
-    'kv': 'NotoSans-Regular.ttf',                   # Komi
-    'kg': 'NotoSans-Regular.ttf',                   # Kongo
     'ko': 'NotoSansKR-Regular.otf',                 # Korean
-    'kj': 'NotoSans-Regular.ttf',                   # Kuanyama
     'ku': 'NotoNaskhArabic-Regular.ttf',            # Kurdish
     'lo': 'NotoSansLao-Regular.ttf',                # Lao
     'la': 'NotoSans-Regular.ttf',                   # Latin
     'lv': 'NotoSans-Regular.ttf',                   # Latvian
-    'li': 'NotoSans-Regular.ttf',                   # Limburgan
     'ln': 'NotoSans-Regular.ttf',                   # Lingala
     'lt': 'NotoSans-Regular.ttf',                   # Lithuanian
-    'lu': 'NotoSans-Regular.ttf',                   # Luba-Katanga
     'mk': 'NotoSans-Regular.ttf',                   # Macedonian
     'mg': 'NotoSans-Regular.ttf',                   # Malagasy
     'ms': 'NotoSans-Regular.ttf',                   # Malay
@@ -104,35 +61,19 @@ LANGUAGE_FONT_MAP = {
     'mt': 'NotoSans-Regular.ttf',                   # Maltese
     'mi': 'NotoSans-Regular.ttf',                   # Maori
     'mr': 'NotoSansDevanagari-Regular.ttf',         # Marathi
-    'mh': 'NotoSans-Regular.ttf',                   # Marshallese
     'mn': 'NotoSansMongolian-Regular.ttf',          # Mongolian
-    'na': 'NotoSans-Regular.ttf',                   # Nauru
-    'nv': 'NotoSans-Regular.ttf',                   # Navajo
-    'nd': 'NotoSans-Regular.ttf',                   # North Ndebele
     'se': 'NotoSans-Regular.ttf',                   # Northern Sami
     'no': 'NotoSans-Regular.ttf',                   # Norwegian
     'nb': 'NotoSans-Regular.ttf',                   # Norwegian Bokmål
-    'nn': 'NotoSans-Regular.ttf',                   # Norwegian Nynorsk
-    'oc': 'NotoSans-Regular.ttf',                   # Occitan
-    'oj': 'NotoSansCanadianAboriginal-Regular.ttf', # Ojibwa
     'or': 'NotoSansOriya-Regular.ttf',              # Oriya
-    'om': 'NotoSans-Regular.ttf',                   # Oromo
-    'os': 'NotoSans-Regular.ttf',                   # Ossetic
-    'pi': 'NotoSansDevanagari-Regular.ttf',         # Pali
-    'pa': 'NotoSansGurmukhi-Regular.ttf',           # Punjabi
     'ps': 'NotoNaskhArabic-Regular.ttf',            # Pashto
     'fa': 'NotoNaskhArabic-Regular.ttf',            # Persian
     'pl': 'NotoSans-Regular.ttf',                   # Polish
     'pt': 'NotoSans-Regular.ttf',                   # Portuguese
-    'qu': 'NotoSans-Regular.ttf',                   # Quechua
+    'pa': 'NotoSansGurmukhi-Regular.ttf',           # Punjabi
     'ro': 'NotoSans-Regular.ttf',                   # Romanian
-    'rm': 'NotoSans-Regular.ttf',                   # Romansh
-    'rn': 'NotoSans-Regular.ttf',                   # Rundi
     'ru': 'NotoSans-Regular.ttf',                   # Russian
     'sm': 'NotoSans-Regular.ttf',                   # Samoan
-    'sg': 'NotoSans-Regular.ttf',                   # Sango
-    'sa': 'NotoSansDevanagari-Regular.ttf',         # Sanskrit
-    'sc': 'NotoSans-Regular.ttf',                   # Sardinian
     'sr': 'NotoSans-Regular.ttf',                   # Serbian
     'sn': 'NotoSans-Regular.ttf',                   # Shona
     'sd': 'NotoSansDevanagari-Regular.ttf',         # Sindhi
@@ -142,9 +83,7 @@ LANGUAGE_FONT_MAP = {
     'so': 'NotoSans-Regular.ttf',                   # Somali
     'st': 'NotoSans-Regular.ttf',                   # Southern Sotho
     'es': 'NotoSans-Regular.ttf',                   # Spanish
-    'su': 'NotoSans-Regular.ttf',                   # Sundanese
     'sw': 'NotoSans-Regular.ttf',                   # Swahili
-    'ss': 'NotoSans-Regular.ttf',                   # Swati
     'sv': 'NotoSans-Regular.ttf',                   # Swedish
     'tl': 'NotoSans-Regular.ttf',                   # Tagalog
     'ty': 'NotoSans-Regular.ttf',                   # Tahitian
@@ -156,24 +95,17 @@ LANGUAGE_FONT_MAP = {
     'bo': 'NotoSerifTibetan-Regular.ttf',           # Tibetan
     'ti': 'NotoSansEthiopic-Regular.ttf',           # Tigrinya
     'to': 'NotoSans-Regular.ttf',                   # Tonga
-    'ts': 'NotoSans-Regular.ttf',                   # Tsonga
     'tn': 'NotoSans-Regular.ttf',                   # Tswana
     'tr': 'NotoSans-Regular.ttf',                   # Turkish
     'tk': 'NotoSans-Regular.ttf',                   # Turkmen
-    'tw': 'NotoSans-Regular.ttf',                   # Twi
     'ug': 'NotoSans-Regular.ttf',                   # Uyghur
     'uk': 'NotoSans-Regular.ttf',                   # Ukrainian
     'ur': 'NotoNaskhArabic-Regular.ttf',            # Urdu
     'uz': 'NotoSans-Regular.ttf',                   # Uzbek
-    've': 'NotoSans-Regular.ttf',                   # Venda
     'vi': 'NotoSans-Regular.ttf',                   # Vietnamese
-    'vo': 'NotoSans-Regular.ttf',                   # Volapük
-    'wa': 'NotoSans-Regular.ttf',                   # Walloon
     'cy': 'NotoSans-Regular.ttf',                   # Welsh
-    'wo': 'NotoSans-Regular.ttf',                   # Wolof
     'xh': 'NotoSans-Regular.ttf',                   # Xhosa
     'yi': 'NotoSansHebrew-Regular.ttf',             # Yiddish
     'yo': 'NotoSans-Regular.ttf',                   # Yoruba
-    'za': 'NotoSans-Regular.ttf',                   # Zhuang/Chuang
     'zu': 'NotoSans-Regular.ttf'                    # Zulu
 }
