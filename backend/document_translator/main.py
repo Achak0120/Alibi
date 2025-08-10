@@ -10,35 +10,30 @@ import time
 from functools import lru_cache
 import numpy as np
 import wordninja
+import deepl
 import sys
 import os
 
-# Font folder
-FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
 
-# Google Vision API Key Path
+# Paths & env
+FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\Aishik C\Desktop\vision_key.json"
 
-# Azure Translator env vars (DO NOT hardcode)
 AZ_T_ENDPOINT = os.getenv("AZURE_TRANSLATOR_ENDPOINT", "").rstrip("/")
 AZ_T_KEY = os.getenv("AZURE_TRANSLATOR_KEY")
 AZ_T_REGION = os.getenv("AZURE_TRANSLATOR_REGION")
+DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")  # optional for fallback
 
 
-# Lang helpers & debug
+# Normalizers & debug
 def normalize_lang_code(code: str) -> str:
-    """Your internal (font) normalization: collapse region variants to base 639-1."""
     if not code:
         return "en"
     c = code.lower().replace('_', '-')
-    if c.startswith('zh'): return 'zh'   # zh, zh-cn, zh-tw → zh (your font map logic)
-    if c.startswith('pt'): return 'pt'
-    if c.startswith('en'): return 'en'
-    if c.startswith('sr'): return 'sr'
-    return c.split('-')[0]               # e.g., nn-NO → nn
+    if c.startswith('zh'): return 'zh'
+    return c.split('-')[0]
 
 def normalize_for_azure(code: str) -> str:
-    """Azure wants BCP‑47 (e.g., zh-Hans/zh-Hant)."""
     if not code:
         return "en"
     c = code.lower()
@@ -48,17 +43,32 @@ def normalize_for_azure(code: str) -> str:
         return "zh-Hant"
     return c
 
+def normalize_for_deepl(code: str) -> str:
+    """
+    DeepL expects UPPERCASE ISO (BCP-47 variants mostly unsupported except zh-Hans/Hant not available).
+    We'll map a few common ones; otherwise use 2-letter upper.
+    """
+    if not code:
+        return "EN"
+    c = code.lower()
+    special = {
+        "pt-br": "PT-BR", "pt-pt": "PT-PT",
+        "en-gb": "EN-GB", "en-us": "EN-US",
+    }
+    if c in special: return special[c]
+    return c.split('-')[0].upper()
+
 def debug_text(text: str, lang_code: str, font_file: str):
     print(f"[DBG] lang={lang_code} font={font_file}")
     print(f"[DBG] text='{text}'")
-    codepoints = [f"U+{ord(c):04X}" for c in text]
+    cps = [f"U+{ord(ch):04X}" for ch in text]
     names = []
-    for c in text:
+    for ch in text:
         try:
-            names.append( unicodedata.name(c) )
-        except:
-            names.append('UNKNOWN')
-    print(f"[DBG] cps={codepoints}")
+            names.append(unicodedata.name(ch))
+        except Exception:
+            names.append("UNKNOWN")
+    print(f"[DBG] cps={cps}")
     print(f"[DBG] names={names}")
 
 def is_junk(text):
@@ -69,9 +79,8 @@ def get_font_by_lang(lang_code: str, size: int = 20):
     font_path = os.path.join(FONT_DIR, font_name)
     if os.path.isfile(font_path):
         return ImageFont.truetype(font_path, size)
-    else:
-        print(f"[WARN] Font not found for {lang_code} → {font_name}, using default.")
-        return ImageFont.load_default()
+    print(f"[WARN] Font not found for {lang_code} → {font_name}, using default.")
+    return ImageFont.load_default()
 
 
 # OCR
@@ -103,30 +112,24 @@ def perform_ocr_with_google_vision(image_path):
 
 # Text layout/drawing
 def get_font(image, text, width, height, lang_code):
-    font_size = None
     font = None
     box = None
     x = 0
     y = 0
     draw = ImageDraw.Draw(image)
-
     for size in range(1, 500):
         new_font = get_font_by_lang(lang_code, size)
         new_box = draw.textbbox((0, 0), text, font=new_font)
         new_w = new_box[2] - new_box[0]
         new_h = new_box[3] - new_box[1]
-
         if new_w > width or new_h > height:
             break
-
-        font_size = size
         font = new_font
         box = new_box
         w = new_w
         h = new_h
         x = (width - w) // 2 - box[0]
         y = (height - h) // 2 - box[1]
-
     return font, x, y
 
 def add_discoloration(color, strength):
@@ -148,15 +151,12 @@ def get_background_color(image, x_min, y_min, x_max, y_max):
         min(y_max + margin, image.height),
     ))
     pixels = list(edge_region.getdata())
-    opaque_pixels = [pixel[:3] for pixel in pixels if pixel[3] > 0]
-
+    opaque_pixels = [p[:3] for p in pixels if p[3] > 0]
     if not opaque_pixels:
         background_color = (255, 255, 255)
     else:
         from collections import Counter
-        most_common = Counter(opaque_pixels).most_common(1)[0][0]
-        background_color = most_common
-
+        background_color = Counter(opaque_pixels).most_common(1)[0][0]
     return add_discoloration(background_color, 40)
 
 def get_text_fill_color(background_color):
@@ -166,14 +166,11 @@ def get_text_fill_color(background_color):
 def replace_text_with_translation(image_path, translated_texts, text_boxes, lang_code):
     image = Image.open(image_path)
     draw = ImageDraw.Draw(image)
-
     for text_box, translated in zip(text_boxes, translated_texts):
-        if translated is None:
+        if not translated:
             continue
-
         x_min, y_min = text_box[0][0][0], text_box[0][0][1]
         x_max, y_max = text_box[0][0][0], text_box[0][0][1]
-
         for x, y in text_box[0]:
             x_min = min(x_min, x)
             x_max = max(x_max, x)
@@ -187,14 +184,10 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes, lang
         debug_text(translated, lang_code, font_name)
 
         font, x_offset, y_offset = get_font(image, translated, x_max - x_min, y_max - y_min, lang_code)
-
-        draw.text(
-            (x_min + x_offset, y_min + y_offset),
-            translated,
-            fill=get_text_fill_color(background_color),
-            font=font,
-        )
-
+        draw.text((x_min + x_offset, y_min + y_offset),
+                  translated,
+                  fill=get_text_fill_color(background_color),
+                  font=font)
     return image
 
 
@@ -208,7 +201,6 @@ def _azure_headers():
 
 @lru_cache(maxsize=1)
 def azure_supported_targets():
-    """Fetch supported target languages once from Azure."""
     if not AZ_T_ENDPOINT:
         return {}
     url = f"{AZ_T_ENDPOINT}/languages?api-version=3.0&scope=translation"
@@ -218,18 +210,13 @@ def azure_supported_targets():
     return {code.lower(): meta.get("name", "") for code, meta in data.items()}
 
 def azure_translate_batch(texts, src="en", dest="fr", max_chunk=50, sleep_sec=0.05):
-    """
-    Translate list[str] via Azure Translator REST API.
-    Returns list[str] of same length.
-    """
     if not (AZ_T_ENDPOINT and AZ_T_KEY and AZ_T_REGION):
         raise RuntimeError("Azure env vars missing: AZURE_TRANSLATOR_KEY / _REGION / _ENDPOINT")
-
     dest_bcp = normalize_for_azure(dest)
     supported = azure_supported_targets()
     if dest_bcp.lower() not in supported:
-        print(f"[WARN] Azure does not list target='{dest_bcp}'. Returning originals.")
-        return texts
+        print(f"[WARN] Azure does not list target='{dest_bcp}'.")
+        raise RuntimeError("Azure target unsupported")
 
     url = f"{AZ_T_ENDPOINT}/translate?api-version=3.0&from={src}&to={dest_bcp}"
     out = []
@@ -237,53 +224,154 @@ def azure_translate_batch(texts, src="en", dest="fr", max_chunk=50, sleep_sec=0.
     while i < len(texts):
         chunk = texts[i:i+max_chunk]
         body = [{"Text": t} for t in chunk]
-        try:
-            resp = requests.post(url, headers=_azure_headers(), data=json.dumps(body), timeout=20)
-            if resp.status_code == 429:
-                time.sleep(1.0)
-                continue
-            resp.raise_for_status()
-            data = resp.json()
-            for item in data:
-                if item.get("translations"):
-                    out.append(item["translations"][0]["text"])
-                else:
-                    out.append("")
-        except Exception as e:
-            print(f"[ERROR] Azure translate chunk failed: {e}")
-            out.extend(chunk)  # fallback to originals
+        resp = requests.post(url, headers=_azure_headers(), data=json.dumps(body), timeout=25)
+        if resp.status_code == 429:
+            time.sleep(1.0)
+            continue
+        resp.raise_for_status()
+        data = resp.json()
+        for item in data:
+            if item.get("translations"):
+                out.append(item["translations"][0]["text"])
+            else:
+                out.append("")
         i += max_chunk
         time.sleep(sleep_sec)
     return out
 
 
+# Google Translate (googletrans) fallback
+@lru_cache(maxsize=1)
+def _google_t():
+    # googletrans is stateless; cache the instance
+    return GoogleTranslator(service_urls=[
+        'translate.googleapis.com',
+        'translate.google.com'
+    ])
+
+def google_translate_batch(texts, src="en", dest="fr"):
+    tr = _google_t()
+    out = []
+    for t in texts:
+        try:
+            res = tr.translate(t, src=src, dest=dest)
+            out.append(res.text)
+        except Exception as e:
+            print(f"[WARN] googletrans failed for '{t[:30]}...': {e}")
+            out.append("")
+    return out
+
+
+# DeepL fallback
+@lru_cache(maxsize=1)
+def _deepl_translator():
+    if not DEEPL_API_KEY:
+        return None
+    return deepl.Translator(DEEPL_API_KEY)
+
+@lru_cache(maxsize=1)
+def deepl_supported_targets():
+    tr = _deepl_translator()
+    if not tr:
+        return set()
+    try:
+        langs = tr.get_target_languages()
+        return {l.code.upper() for l in langs}
+    except Exception as e:
+        print(f"[WARN] DeepL list languages failed: {e}")
+        return set()
+
+def deepl_translate_batch(texts, src="EN", dest="FR"):
+    tr = _deepl_translator()
+    if not tr:
+        raise RuntimeError("DEEPL_API_KEY missing")
+    dest_up = normalize_for_deepl(dest)
+    supp = deepl_supported_targets()
+    if dest_up not in supp:
+        print(f"[WARN] DeepL does not list target='{dest_up}'.")
+        raise RuntimeError("DeepL target unsupported")
+
+    out = []
+    for t in texts:
+        try:
+            res = tr.translate_text(t, source_lang=src.upper(), target_lang=dest_up)
+            out.append(res.text)
+        except Exception as e:
+            print(f"[WARN] DeepL failed for '{t[:30]}...': {e}")
+            out.append("")
+    return out
+
+# Fallback cascade
+def translate_with_fallbacks(texts, src_lang, dest_lang):
+    """
+    Try Azure → Google → DeepL.
+    Returns a list[str] same length as texts.
+    Only re-tries untranslated/empty items on each fallback step.
+    """
+    # Start with originals
+    results = [""] * len(texts)
+    pending_idx = list(range(len(texts)))
+
+    def collect(target_list):
+        nonlocal results, pending_idx
+        new_pending = []
+        j = 0
+        for i in pending_idx:
+            cand = target_list[j] if j < len(target_list) else ""
+            j += 1
+            if cand and cand.strip() and cand.strip() != texts[i].strip():
+                results[i] = cand
+            else:
+                new_pending.append(i)
+        pending_idx = new_pending
+
+    # 1) Azure
+    try:
+        az = azure_translate_batch([texts[i] for i in pending_idx], src=src_lang, dest=dest_lang)
+        collect(az)
+        print(f"[INFO] Azure translated {len(texts)-len(pending_idx)} / {len(texts)}")
+    except Exception as e:
+        print(f"[INFO] Azure skipped: {e}")
+
+    if pending_idx:
+        # 2) Google
+        try:
+            gg = google_translate_batch([texts[i] for i in pending_idx], src=src_lang, dest=dest_lang)
+            collect(gg)
+            print(f"[INFO] Google translated {len(texts)-len(pending_idx)} / {len(texts)}")
+        except Exception as e:
+            print(f"[INFO] Google skipped: {e}")
+
+    if pending_idx:
+        # 3) DeepL
+        try:
+            dl = deepl_translate_batch([texts[i] for i in pending_idx], src=src_lang, dest=dest_lang)
+            collect(dl)
+            print(f"[INFO] DeepL translated {len(texts)-len(pending_idx)} / {len(texts)}")
+        except Exception as e:
+            print(f"[INFO] DeepL skipped: {e}")
+    return results
+
+
 # Main pipeline
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
-    # OCR
     extracted_text_boxes = perform_ocr_with_google_vision(image_path)
 
-    # Font selection code
+    # Choose font by our internal map key
     norm = normalize_lang_code(target_lang)
     selected_lang_code = norm if norm in font_map else "en"
 
-    # Collect texts to translate (skip junk/empty), cache by (lang, text)
-    translated_texts = []
+    # Collect texts to translate, lightly clean
     src_texts = []
-    index_map = []  # (idx_in_boxes, cache_key, final_text)
-    cache = {}
-
+    index_map = []  # (idx_in_boxes, original_text)
     spell = SpellChecker()
 
     for idx, (_, text) in enumerate(extracted_text_boxes):
-        if not text:
-            translated_texts.append(None)
-            continue
-        if is_junk(text):
-            print(f"[SKIP] Skipped junk: {text}")
-            translated_texts.append(None)
+        if not text or is_junk(text):
+            src_texts.append("")           # keep slot for alignment
+            index_map.append((idx, None))  # mark as skipped
             continue
 
-        # light cleanup of English source
         words = text.split()
         corrected_words = [spell.correction(w) or w for w in words]
         corrected_text = " ".join(corrected_words)
@@ -293,31 +381,23 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
             split_words.extend(wordninja.split(w) if len(w) > 10 else [w])
         final_text = " ".join(split_words)
 
-        ck = (norm, final_text)
-        if ck in cache:
-            translated_texts.append(cache[ck])
-            continue
-
-        index_map.append((idx, ck, final_text))
         src_texts.append(final_text)
-        translated_texts.append(None)  # placeholder
+        index_map.append((idx, final_text))
 
-    # Call Azure in batch (fast + reliable)
-    if src_texts:
-        try:
-            azure_out = azure_translate_batch(src_texts, src="en", dest=norm)
-        except Exception as e:
-            print(f"[ERROR] Azure call failed: {e}")
-            azure_out = src_texts  # fallback: keep originals
+    # Translate with cascade (en → target)
+    dest = normalize_lang_code(target_lang)
+    translations = translate_with_fallbacks(src_texts, src_lang="en", dest_lang=dest)
 
-        for (idx, ck, _src), tr in zip(index_map, azure_out):
-            cache[ck] = tr
-            translated_texts[idx] = tr
+    # Build final list aligned to boxes (None for unchanged/empty)
+    translated_texts = []
+    for (idx, original), tr in zip(index_map, translations):
+        if original is None or not tr:
+            translated_texts.append(None)
+        else:
+            translated_texts.append(tr)
 
     # Draw
-    image = replace_text_with_translation(
-        image_path, translated_texts, extracted_text_boxes, selected_lang_code
-    )
+    image = replace_text_with_translation(image_path, translated_texts, extracted_text_boxes, selected_lang_code)
     image.save(output_path)
 
 
@@ -327,13 +407,17 @@ if __name__ == "__main__":
     output_folder = "output"
     target_lang = sys.argv[1] if len(sys.argv) > 1 else "en"
 
-    # sanity check for Azure env
-    if not (AZ_T_ENDPOINT and AZ_T_KEY and AZ_T_REGION):
-        raise SystemExit("Set AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_ENDPOINT, AZURE_TRANSLATOR_REGION and restart terminal.")
+    if AZ_T_ENDPOINT and AZ_T_KEY and AZ_T_REGION:
+        print("[INFO] Azure Translator configured.")
+    else:
+        print("[INFO] Azure not configured. Will skip to Google → DeepL if available.")
+    if DEEPL_API_KEY:
+        print("[INFO] DeepL configured.")
+    else:
+        print("[INFO] DeepL not configured.")
 
     files = os.listdir(input_folder)
     image_files = [file for file in files if file.lower().endswith((".jpg", ".jpeg", ".png"))]
-
     os.makedirs(output_folder, exist_ok=True)
 
     for filename in image_files:
