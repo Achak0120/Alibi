@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
+from googletrans import Translator as GoogleTranslator
 from spellchecker import SpellChecker
 from font_map import LANGUAGE_FONT_MAP
 from google.cloud import vision
@@ -11,10 +12,6 @@ import numpy as np
 import wordninja
 import sys
 import os
-
-# ----------------------------
-# Config
-# ----------------------------
 
 # Font folder
 FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")

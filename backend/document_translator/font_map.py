@@ -1,5 +1,5 @@
 LANGUAGE_FONT_MAP = {
-    'aa': 'NotoSansEthiopic-Regular.ttf',           # Afar
+    'aa': 'NotoSans-Regular.ttf',                   # Afar
     'ab': 'NotoSans-Regular.ttf',                   # Abkhazian
     'ae': 'NotoSansAvestan-Regular.ttf',            # Avestan
     'ak': 'NotoSans-Regular.ttf',                   # Akan (Latin)
