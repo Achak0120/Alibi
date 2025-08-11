@@ -1,5 +1,7 @@
+# main.py
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 from googletrans import Translator as GoogleTranslator
+from googletrans import LANGUAGES as GT_LANGUAGES  # for support check
 from spellchecker import SpellChecker
 from font_map import LANGUAGE_FONT_MAP
 from google.cloud import vision
@@ -13,15 +15,6 @@ import wordninja
 import deepl
 import sys
 import os
-import translator_router
-
-# >>> NEW: import the router helpers (Option B centralization)
-from translator_router import (
-    normalize_lang_code,     # canonical 2-letter (with zh folding)
-    normalize_for_azure,     # e.g., zh-Hans / zh-Hant
-    normalize_for_deepl,     # e.g., EN, PT-BR
-    provider_chain_for       # returns filtered ['azure','google','deepl'] for target
-)
 
 # Paths & env
 FONT_DIR = os.path.join(os.path.dirname(__file__), "Noto")
@@ -34,8 +27,56 @@ DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")  # optional for fallback
 
 
 # ------------------------
-# Debug + font helpers
+# Normalizers & helpers
 # ------------------------
+def normalize_lang_code(code: str) -> str:
+    """Canonicalize to simple, lowercase ISO 639-1 two-letter where possible."""
+    if not code:
+        return "en"
+    c = code.lower().replace("_", "-")
+    if c.startswith("zh"):  # fold to 'zh' and let per-provider handle script
+        return "zh"
+    return c.split("-")[0]
+
+def normalize_for_azure(code: str) -> str:
+    """Azure uses BCP-47 script variants for Chinese; else lower-case is fine."""
+    if not code:
+        return "en"
+    c = code.lower()
+    if c in ("zh", "zh-cn", "zh-hans"):
+        return "zh-Hans"
+    if c in ("zh-tw", "zh-hk", "zh-hant"):
+        return "zh-Hant"
+    return c
+
+def normalize_for_google(code: str) -> str:
+    """googletrans uses legacy codes for a couple languages."""
+    c = normalize_lang_code(code)
+    if c == "he":  # Hebrew
+        return "iw"
+    if c == "jv":  # Javanese
+        return "jw"
+    # Chinese in googletrans: 'zh-cn', 'zh-tw' work best; fall back to 'zh'
+    if c == "zh":
+        return "zh"
+    return c
+
+def normalize_for_deepl(code: str) -> str:
+    """
+    DeepL expects upper-case ISO; supports e.g. EN, EN-GB, PT-BR.
+    We'll map a couple; else use 2-letter upper.
+    """
+    if not code:
+        return "EN"
+    c = code.lower()
+    special = {
+        "pt-br": "PT-BR", "pt-pt": "PT-PT",
+        "en-gb": "EN-GB", "en-us": "EN-US",
+    }
+    if c in special:
+        return special[c]
+    return normalize_lang_code(c).upper()
+
 def debug_text(text: str, lang_code: str, font_file: str):
     print(f"[DBG] lang={lang_code} font={font_file}")
     print(f"[DBG] text='{text}'")
@@ -59,6 +100,68 @@ def get_font_by_lang(lang_code: str, size: int = 20):
         return ImageFont.truetype(font_path, size)
     print(f"[WARN] Font not found for {lang_code} → {font_name}, using default.")
     return ImageFont.load_default()
+
+
+# ------------------------
+# Provider support discovery
+# ------------------------
+@lru_cache(maxsize=1)
+def azure_supported_targets():
+    """Fetch Azure Translator supported targets once (empty if not configured)."""
+    if not AZ_T_ENDPOINT:
+        return {}
+    try:
+        url = f"{AZ_T_ENDPOINT}/languages?api-version=3.0&scope=translation"
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json().get("translation", {})
+        return {code.lower(): meta.get("name", "") for code, meta in data.items()}
+    except Exception as e:
+        print(f"[WARN] Azure languages fetch failed: {e}")
+        return {}
+
+@lru_cache(maxsize=1)
+def deepl_supported_targets():
+    tr = _deepl_translator()
+    if not tr:
+        return set()
+    try:
+        langs = tr.get_target_languages()
+        return {l.code.upper() for l in langs}
+    except Exception as e:
+        print(f"[WARN] DeepL list languages failed: {e}")
+        return set()
+
+def provider_chain_for(dest: str):
+    """
+    Decide which providers to try, in order Azure -> Google -> DeepL,
+    filtered by (a) env/config present and (b) provider actually supports target.
+    """
+    chain = []
+    # Azure
+    if AZ_T_ENDPOINT and AZ_T_KEY and AZ_T_REGION:
+        az_code = normalize_for_azure(dest).lower()
+        if az_code in azure_supported_targets():
+            chain.append("azure")
+        else:
+            print(f"[WARN] Azure does not list target='{az_code}'.")
+    # Google
+    try:
+        g_code = normalize_for_google(dest)
+        if g_code in set(GT_LANGUAGES.keys()):
+            chain.append("google")
+        else:
+            print(f"[WARN] googletrans does not list target='{g_code}'.")
+    except Exception as e:
+        print(f"[WARN] googletrans LANGUAGES unavailable: {e}")
+    # DeepL
+    if DEEPL_API_KEY:
+        d_code = normalize_for_deepl(dest)
+        if d_code in deepl_supported_targets():
+            chain.append("deepl")
+        else:
+            print(f"[WARN] DeepL does not list target='{d_code}'.")
+    return chain
 
 
 # ------------------------
@@ -186,9 +289,7 @@ def _azure_headers():
     }
 
 def azure_translate_batch(texts, src="en", dest="fr", max_chunk=50, sleep_sec=0.05):
-    """
-    Assumes caller already verified Azure supports 'dest'.
-    """
+    """Assumes caller already verified Azure supports 'dest'."""
     if not (AZ_T_ENDPOINT and AZ_T_KEY and AZ_T_REGION):
         raise RuntimeError("Azure env vars missing: AZURE_TRANSLATOR_KEY / _REGION / _ENDPOINT")
     dest_bcp = normalize_for_azure(dest)
@@ -223,10 +324,7 @@ def _google_t():
     ])
 
 def google_translate_batch(texts, src="en", dest="fr"):
-    """
-    Assumes caller already verified googletrans supports 'dest'.
-    'dest' should be a lowercased BCP-47-ish code googletrans accepts (e.g., 'ja', 'zh-cn').
-    """
+    """Assumes caller already verified googletrans supports 'dest'."""
     tr = _google_t()
     out = []
     for t in texts:
@@ -245,9 +343,7 @@ def _deepl_translator():
     return deepl.Translator(DEEPL_API_KEY)
 
 def deepl_translate_batch(texts, src="EN", dest="FR"):
-    """
-    Assumes caller already verified DeepL supports 'dest'.
-    """
+    """Assumes caller already verified DeepL supports 'dest'."""
     tr = _deepl_translator()
     if not tr:
         raise RuntimeError("DEEPL_API_KEY missing")
@@ -264,13 +360,12 @@ def deepl_translate_batch(texts, src="EN", dest="FR"):
 
 
 # ------------------------
-# Fallback cascade (router-driven)
+# Fallback cascade
 # ------------------------
 def translate_with_fallbacks(texts, src_lang, dest_lang):
     """
-    Use translator_router.provider_chain_for(dest_lang) to pick working providers,
-    then try them in order: e.g., ['azure' → 'google' → 'deepl'].
-    Only re-tries untranslated/empty items on each step.
+    Try Azure → Google → DeepL for languages each provider supports.
+    Returns a list[str] same length as texts. Only re-tries untranslated items.
     """
     chain = provider_chain_for(dest_lang)
     if not chain:
@@ -284,8 +379,7 @@ def translate_with_fallbacks(texts, src_lang, dest_lang):
         if service_name == 'azure':
             return azure_translate_batch(batch, src=src_lang, dest=dest_lang)
         if service_name == 'google':
-            # googletrans prefers lower-case simple tags
-            return google_translate_batch(batch, src=src_lang, dest=normalize_lang_code(dest_lang))
+            return google_translate_batch(batch, src=src_lang, dest=normalize_for_google(dest_lang))
         if service_name == 'deepl':
             return deepl_translate_batch(batch, src=src_lang, dest=dest_lang)
         return [""] * len(batch)
@@ -308,7 +402,7 @@ def translate_with_fallbacks(texts, src_lang, dest_lang):
 
 
 # ------------------------
-# Main pipeline (unchanged signature)
+# Main pipeline
 # ------------------------
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     extracted_text_boxes = perform_ocr_with_google_vision(image_path)
@@ -340,7 +434,7 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
         src_texts.append(final_text)
         index_map.append((idx, final_text))
 
-    # Translate with router-driven cascade (en → target)
+    # Translate (en → target) with provider fallback
     dest = normalize_lang_code(target_lang)
     translations = translate_with_fallbacks(src_texts, src_lang="en", dest_lang=dest)
 
