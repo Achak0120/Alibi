@@ -17,27 +17,60 @@ const DocumentQA = () => {
 
   useEffect(() => {
     if (scrollAreaRef.current) {
+      // @ts-ignore
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    toast({
-      title: "Hold on!",
-      description: "🚧 This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀",
-      variant: "destructive"
-    });
+    try {
+      const selectedLangCode =
+        (typeof window !== 'undefined' && window.localStorage.getItem('alibi_target_lang')) || 'auto';
 
-    setTimeout(() => {
-      const botMessage = { role: 'bot', content: "I'm currently a placeholder. The real AI will be connected soon!" };
+      const payload: any = {
+        message: userMessage.content,
+        target_lang: selectedLangCode
+      };
+
+      const fileName =
+        typeof window !== 'undefined' && window.localStorage.getItem('alibi_output_filename');
+      if (fileName) {
+        payload.image_filename = fileName; // 'translated.png'
+      }
+
+      const res = await fetch('http://localhost:8001/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (data?.target_lang && typeof window !== 'undefined') {
+        window.localStorage.setItem('alibi_target_lang', data.target_lang);
+      }
+
+      const botMessage = { role: 'bot', content: data?.reply ?? 'No response' };
       setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Chatbot error",
+        description: "Couldn't reach the QA service. Check the backend and try again.",
+        variant: "destructive"
+      });
+      setMessages(prev => [...prev, { role: 'bot', content: "Sorry—I'm having trouble reaching the QA service." }]);
+    }
   };
 
   return (

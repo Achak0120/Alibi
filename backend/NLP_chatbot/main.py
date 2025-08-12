@@ -1,8 +1,10 @@
 import os
 import io
-import glob
 from pathlib import Path
 from typing import Optional
+
+from langdetect import detect, DetectorFactory
+DetectorFactory.seed = 0  # deterministic language detection
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,7 +33,7 @@ if not GEMINI_KEY:
     raise RuntimeError("Missing GOOGLE_API_KEY in .env")
 
 genai.configure(api_key=GEMINI_KEY)
-# Fast + cheap + multimodal
+# Fast + cost‑effective + multimodal
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 # Paths from your pipeline
@@ -41,10 +43,9 @@ INPUT_DIR  = PROJECT_ROOT / "document_translator" / "input"    # original upload
 
 class ChatRequest(BaseModel):
     message: str
-    # Optional: pass a specific filename if you have one in state
-    image_filename: Optional[str] = None
-    # Optional: if you want to query the original instead:
-    source: Optional[str] = "output"  # "output" or "input"
+    image_filename: Optional[str] = None          # optional: specific file
+    source: Optional[str] = "output"              # "output" or "input"
+    target_lang: Optional[str] = "auto"           # e.g., "bn", "es", "ar", or "auto"
 
 def _latest_image(folder: Path) -> Path:
     candidates = []
@@ -59,8 +60,7 @@ def _load_image_bytes(path: Path) -> tuple[bytes, str]:
     # ensure it's a valid image and grab a mime
     with Image.open(path) as im:
         buf = io.BytesIO()
-        # Preserve format if we can, default png
-        fmt = (im.format or "PNG").upper()
+        fmt = (im.format or "PNG").upper()  # Preserve format if possible
         im.save(buf, fmt)
         data = buf.getvalue()
         mime = {
@@ -70,6 +70,19 @@ def _load_image_bytes(path: Path) -> tuple[bytes, str]:
             "WEBP": "image/webp"
         }.get(fmt, "image/png")
         return data, mime
+
+def _resolve_lang(user_msg: str, preferred: Optional[str]) -> str:
+    """
+    Returns a BCP-47-ish 2-letter code where possible (e.g., 'en','es','bn').
+    If preferred is provided and not 'auto', use it. Otherwise try to detect;
+    fall back to 'en' on failure.
+    """
+    if preferred and preferred.lower() != "auto":
+        return preferred.lower()
+    try:
+        return detect(user_msg).lower()
+    except Exception:
+        return "en"
 
 @app.post("/api/chat")
 def chat(req: ChatRequest):
@@ -82,31 +95,36 @@ def chat(req: ChatRequest):
         img_path = _latest_image(folder)
 
     img_bytes, mime = _load_image_bytes(img_path)
+    user_q = (req.message or "").strip()
+    target_lang = _resolve_lang(user_q, req.target_lang)
 
-    # Prompting: keep it grounded in the document and ask for citations to visible text
+    # System prompt: grounded, concise, reply in target_lang
     system_instruction = (
         "You are a careful assistant. Only answer using information visible in the image. "
-        "If the answer is not visible, say you cannot find it. Be concise and helpful."
+        "If the answer is not visible, say you cannot find it. "
+        f"Always respond in the user's language: {target_lang}. "
+        "Use clear, simple wording and keep answers concise."
     )
-    user_q = req.message.strip()
 
     # Gemini multimodal call
     result = model.generate_content([
         system_instruction,
         {"mime_type": mime, "data": img_bytes},
-        f"User question: {user_q}"
+        f"User question (reply in {target_lang}): {user_q}"
     ])
 
-    reply = (result.text or "").strip()
+    reply = (getattr(result, "text", "") or "").strip()
     if not reply:
+        # Minimal language-agnostic fallback:
         reply = "Sorry, I couldn’t extract an answer from the document."
 
     return {
         "reply": reply,
-        "image_used": str(img_path.name)
+        "image_used": str(img_path.name),
+        "target_lang": target_lang
     }
 
-# Optional: simple health check
+# Simple health check
 @app.get("/api/health")
 def health():
     return {"status": "ok"}

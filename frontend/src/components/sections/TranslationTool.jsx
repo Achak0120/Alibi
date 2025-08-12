@@ -78,6 +78,12 @@ const TranslationTool = () => {
       const imageUrl = URL.createObjectURL(result);
       setTranslatedImage(imageUrl);
 
+      // 🔗 Share with chatbot (language + known output filename)
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('alibi_target_lang', selectedLanguage);
+        window.localStorage.setItem('alibi_output_filename', 'translated.png'); // Flask writes this fixed name
+      }
+
       toast({
         title: "Translation completed!",
         description: "Your document has been successfully translated."
