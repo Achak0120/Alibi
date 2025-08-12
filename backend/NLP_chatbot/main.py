@@ -1,0 +1,112 @@
+import os
+import io
+import glob
+from pathlib import Path
+from typing import Optional
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from PIL import Image
+
+# --- CORS ---
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")
+
+app = FastAPI(title="Document QA Chatbot")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_ORIGIN] if FRONTEND_ORIGIN != "*" else ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Gemini setup ---
+import google.generativeai as genai
+from dotenv import load_dotenv
+load_dotenv()
+
+GEMINI_KEY = os.getenv("GOOGLE_API_KEY")
+if not GEMINI_KEY:
+    raise RuntimeError("Missing GOOGLE_API_KEY in .env")
+
+genai.configure(api_key=GEMINI_KEY)
+# Fast + cheap + multimodal
+model = genai.GenerativeModel("gemini-1.5-flash")
+
+# Paths from your pipeline
+PROJECT_ROOT = Path(__file__).resolve().parents[2]  # .../CareBridge
+OUTPUT_DIR = PROJECT_ROOT / "document_translator" / "output"   # final preview image here
+INPUT_DIR  = PROJECT_ROOT / "document_translator" / "input"    # original upload, if needed
+
+class ChatRequest(BaseModel):
+    message: str
+    # Optional: pass a specific filename if you have one in state
+    image_filename: Optional[str] = None
+    # Optional: if you want to query the original instead:
+    source: Optional[str] = "output"  # "output" or "input"
+
+def _latest_image(folder: Path) -> Path:
+    candidates = []
+    for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
+        candidates.extend(folder.glob(ext))
+    if not candidates:
+        raise FileNotFoundError(f"No images found in {folder}")
+    # newest by modified time
+    return max(candidates, key=lambda p: p.stat().st_mtime)
+
+def _load_image_bytes(path: Path) -> tuple[bytes, str]:
+    # ensure it's a valid image and grab a mime
+    with Image.open(path) as im:
+        buf = io.BytesIO()
+        # Preserve format if we can, default png
+        fmt = (im.format or "PNG").upper()
+        im.save(buf, fmt)
+        data = buf.getvalue()
+        mime = {
+            "PNG": "image/png",
+            "JPG": "image/jpeg",
+            "JPEG": "image/jpeg",
+            "WEBP": "image/webp"
+        }.get(fmt, "image/png")
+        return data, mime
+
+@app.post("/api/chat")
+def chat(req: ChatRequest):
+    folder = OUTPUT_DIR if (req.source or "output").lower() == "output" else INPUT_DIR
+    if req.image_filename:
+        img_path = (folder / req.image_filename)
+        if not img_path.exists():
+            raise FileNotFoundError(f"{img_path} not found.")
+    else:
+        img_path = _latest_image(folder)
+
+    img_bytes, mime = _load_image_bytes(img_path)
+
+    # Prompting: keep it grounded in the document and ask for citations to visible text
+    system_instruction = (
+        "You are a careful assistant. Only answer using information visible in the image. "
+        "If the answer is not visible, say you cannot find it. Be concise and helpful."
+    )
+    user_q = req.message.strip()
+
+    # Gemini multimodal call
+    result = model.generate_content([
+        system_instruction,
+        {"mime_type": mime, "data": img_bytes},
+        f"User question: {user_q}"
+    ])
+
+    reply = (result.text or "").strip()
+    if not reply:
+        reply = "Sorry, I couldn’t extract an answer from the document."
+
+    return {
+        "reply": reply,
+        "image_used": str(img_path.name)
+    }
+
+# Optional: simple health check
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
