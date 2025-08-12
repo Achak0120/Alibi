@@ -51,14 +51,39 @@ All processing happens in your own backend - **no external APIs for document tra
 * Internet access (for API calls)
 
 ---
-### Setup Instructions
+### Setup Instructions (Make sure all terminal windows are opened in your code editor with the same root directory)
 
 1. **Clone the Repo**
 ```bash
 git clone https://github.com/Achak0120/Alibi.git
 ```
+
 2. **Install requirements.txt**
 ```bash
+cd Alibi
 pip install -r backend/NLP_chatbot/requirements.txt
 pip install -r requirements.txt
+```
 
+3. **Run the Document Translator Backend** (Open a new terminal window --> Terminal 1)
+```bash
+cd backend/document_translator
+python server.py
+```
+
+4. ** Run the Chatbot Backend** (Open a new terminal window --> Terminal 2, but keep all previous terminal windows open)
+```bash
+cd backend/NLP_chatbot
+uvicorn main:app --host 0.0.0.0 --port 5001 --reload
+```
+
+5. **Run the Frontend** (Open a new terminal window --> Terminal 3, but keep all previous terminal windows open)
+```bash
+cd frontend
+npm install  (only do once, either globally or in your virtual environment)
+npm run dev
+```
+
+6. **Navigate to Project Frontend via URL in your search engine**
+> The most common port to enter the project is (*http://localhost:5173/*)
+> To make sure you are in the correct port url, check the terminal output in terminal 3 after you complete **Step 5** and travel to that URL
