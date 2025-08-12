@@ -33,7 +33,7 @@ const DocumentQA = () => {
       const selectedLangCode =
         (typeof window !== 'undefined' && window.localStorage.getItem('alibi_target_lang')) || 'auto';
 
-      const payload: any = {
+      const payload = {
         message: userMessage.content,
         target_lang: selectedLangCode
       };
