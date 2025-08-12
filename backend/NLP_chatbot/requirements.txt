@@ -4,3 +4,5 @@ python-multipart
 pydantic
 google-generativeai
 Pillow
+python-dotenv
+langdetect

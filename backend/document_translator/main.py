@@ -2,16 +2,15 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 from googletrans import Translator as GoogleTranslator
 from googletrans import LANGUAGES as GT_LANGUAGES  # for support check
-from spellchecker import SpellChecker
 from font_map import LANGUAGE_FONT_MAP
+from spellchecker import SpellChecker
+from functools import lru_cache
 from google.cloud import vision
 import unicodedata
+import wordninja
 import requests
 import json
 import time
-from functools import lru_cache
-import numpy as np
-import wordninja
 import deepl
 import sys
 import os
