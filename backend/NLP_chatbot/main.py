@@ -36,10 +36,11 @@ genai.configure(api_key=GEMINI_KEY)
 # Fast + cost‑effective + multimodal
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Paths from your pipeline
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # .../CareBridge
-OUTPUT_DIR = PROJECT_ROOT / "document_translator" / "output"   # final preview image here
-INPUT_DIR  = PROJECT_ROOT / "document_translator" / "input"    # original upload, if needed
+# Paths from your pipeline (point to .../CareBridge/backend/document_translator)
+BACKEND_DIR = Path(__file__).resolve().parents[1]  # .../CareBridge/backend
+DOC_DIR = BACKEND_DIR / "document_translator" / "document_translator"
+OUTPUT_DIR = DOC_DIR / "output"
+INPUT_DIR  = DOC_DIR / "input"
 
 class ChatRequest(BaseModel):
     message: str
