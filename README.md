@@ -52,6 +52,7 @@ All processing happens in your own backend - **no external APIs for document tra
 
 ---
 ### Setup Instructions (Make sure all terminal windows are opened in your code editor with the same root directory)
+### You may want to create a virtual environment for managing the required packages and libraries from the requirements.txt files
 
 1. **Clone the Repo**
 ```bash
