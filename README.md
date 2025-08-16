@@ -36,8 +36,8 @@ All processing happens in your own backend - **no external APIs for document tra
 | 🌐 Frontend                | React, Vite, HTML/CSS/JavaScript         |
 | ⚙️ Backend (Document Translator) | Python + Flask                     |
 | ⚙️ Backend (Chatbot)       | Python + FastAPI + Uvicorn + Gemini API  |
-| 🔍 OCR                     | Google Cloud Vision API                  |
-| 🌍 Translation             | DeepL API, Google Translate API          |
+| 🔍 OCR                     | Pytesseract               |
+| 🌍 Translation             | DeepL API          |
 | 🖼️ Image Processing        | Pillow (PIL)                             |
 | 📦 Package Management      | pip (Python), npm (JavaScript)           |
 
