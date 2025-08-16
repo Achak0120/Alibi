@@ -5,14 +5,14 @@
 The app runs fully offline on the backend, without any cloud APIs, user accounts, or internet-based AI services for **FREE**. Users interact through a web browser, and all document processing and AI chatbot functionality is powered by local, open-source software.
 
 ## ⚙ What Alibi Does:
-### 📸 Image Translator (Image → Translated Image)
+### Image Translator (Image → Translated Image)
 Users can upload pictures of physical documents - such as medical records, legal notices, or government forms. Alibi will:
 * Extract all visible English text from the image
 * Translate it to the user's chosen language
 * Rebuild the image with translated text in place of the original text
 * Return the new translated image to the browser for viewing/download
 
-### 🈯 Multilingual Document Assistant (Chatbot)
+### Multilingual Document Assistant (Chatbot)
 Users can ask questions in **any language** - and the chatbot will:
 * Automatically detect and translate the message into English
 * Generate a clear, simple response using a **locally hosted LLM**
