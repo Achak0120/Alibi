@@ -102,6 +102,7 @@ def _resolve_lang(user_msg: str, preferred: Optional[str], user_id: str) -> str:
 
 @app.post("/api/chat")
 def chat(req: ChatRequest):
+    user_id = "anon"
     folder = OUTPUT_DIR if (req.source or "output").lower() == "output" else INPUT_DIR
     if req.image_filename:
         img_path = (folder / req.image_filename)
@@ -118,7 +119,6 @@ def chat(req: ChatRequest):
 
     img_bytes, mime = _load_image_bytes(img_path)
     user_q = (req.message or "").strip()
-    user_id = "anon"
     target_lang = _resolve_lang(user_q, req.target_lang, user_id)
 
     # System prompt: grounded, concise, reply in target_lang
