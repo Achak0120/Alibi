@@ -157,12 +157,6 @@ def chat(req: ChatRequest):
         
     history.append({"role": "assistant", "content": reply})
     SESSION_HISTORY[user_id] = history
-    
-    
-    if not reply:
-        # Minimal language-agnostic fallback:
-        reply = "Sorry, I couldn’t extract an answer from the document."
-
     return {
         "reply": reply,
         "image_used": str(img_path.name),
