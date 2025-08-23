@@ -9,6 +9,7 @@ DetectorFactory.seed = 0  # deterministic language detection
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from collections import defaultdict, deque
 from pydantic import BaseModel
 from PIL import Image
 
@@ -18,6 +19,7 @@ FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")
 app = FastAPI(title="Document QA Chatbot")
 from collections import defaultdict
 SESSION_LANG = defaultdict(lambda: "en")
+SESSION_HISTORY = defaultdict(lambda: deque(maxlen=5))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[FRONTEND_ORIGIN] if FRONTEND_ORIGIN != "*" else ["*"],
@@ -107,6 +109,12 @@ def chat(req: ChatRequest):
             raise FileNotFoundError(f"{img_path} not found.")
     else:
         img_path = _latest_image(folder)
+    
+    last_doc = getattr(SESSION_HISTORY[user_id], "doc", None)
+    current_doc = str(img_path.name)
+    if last_doc != current_doc:
+        SESSION_HISTORY[user_id].clear()
+        SESSION_HISTORY[user_id].doc = current_doc
 
     img_bytes, mime = _load_image_bytes(img_path)
     user_q = (req.message or "").strip()
@@ -122,13 +130,36 @@ def chat(req: ChatRequest):
     )
 
     # Gemini multimodal call
-    result = model.generate_content([
+    history = SESSION_HISTORY[user_id]
+    
+    # add the new user message into history
+    history.append({"role": "user", "content": user_q})
+    
+    # start convo with system + image
+    messages = [
         system_instruction,
-        {"mime_type": mime, "data": img_bytes},
-        f"User question (reply in {target_lang}): {user_q}"
-    ])
-
-    reply = (getattr(result, "text", "") or "").strip()
+        {"mime_type": mime, "data":img_bytes},
+    ]
+    
+    # add history turns
+    for turn in history:
+        if turn["role"] == "user":
+            messages.append(f"User: {turn['content']}")
+        else:
+            messages.append(f"Assistant: {turn['content']}")
+    
+    # gemini multimodel call
+    try:
+        result = model.generate_content(messages)
+        reply = (getattr(result, "text", "") or "").strip()
+    except Exception as e:
+        logger.error(f"Gemini call failed: {e}")
+        reply = "Sorry, I couldn't extract an answer from the document."
+        
+    history.append({"role": "assistant", "content": reply})
+    SESSION_HISTORY[user_id] = history
+    
+    
     if not reply:
         # Minimal language-agnostic fallback:
         reply = "Sorry, I couldn’t extract an answer from the document."

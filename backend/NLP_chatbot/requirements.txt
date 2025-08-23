@@ -7,3 +7,4 @@ Pillow
 python-dotenv
 langdetect
 logging
+collections

@@ -60,7 +60,11 @@ const DocumentQA = () => {
         window.localStorage.setItem('alibi_target_lang', data.target_lang);
       }
 
-      const botMessage = { role: 'bot', content: data?.reply ?? 'No response' };
+      const botMessage = {
+        role: 'bot',
+        content: data?.reply ?? 'No response',
+        lang: data?.target_lang || 'en'
+      };
       setMessages(prev => [...prev, botMessage]);
     } catch (err) {
       console.error(err);
@@ -104,7 +108,10 @@ const DocumentQA = () => {
                       <Bot className="w-5 h-5 text-white" />
                     </div>
                   )}
-                  <div className={cn("chat-bubble", msg.role === 'user' ? 'user' : 'bot')}>
+                  <div className={cn("chat-bubble", msg.role === 'user' ? 'user' : 'bot')}
+                    dir="auto"
+                    lang={msg.lang || 'en'}
+                  >
                     {msg.content}
                   </div>
                   {msg.role === 'user' && (
