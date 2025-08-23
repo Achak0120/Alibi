@@ -20,6 +20,7 @@ app = FastAPI(title="Document QA Chatbot")
 from collections import defaultdict
 SESSION_LANG = defaultdict(lambda: "en")
 SESSION_HISTORY = defaultdict(lambda: deque(maxlen=5))
+SESSION_DOC = defaultdict(lambda: None)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[FRONTEND_ORIGIN] if FRONTEND_ORIGIN != "*" else ["*"],
@@ -111,11 +112,10 @@ def chat(req: ChatRequest):
     else:
         img_path = _latest_image(folder)
     
-    last_doc = getattr(SESSION_HISTORY[user_id], "doc", None)
     current_doc = str(img_path.name)
-    if last_doc != current_doc:
+    if SESSION_DOC[user_id] != current_doc:
         SESSION_HISTORY[user_id].clear()
-        SESSION_HISTORY[user_id].doc = current_doc
+        SESSION_DOC[user_id] = current_doc
 
     img_bytes, mime = _load_image_bytes(img_path)
     user_q = (req.message or "").strip()
