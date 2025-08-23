@@ -5,14 +5,14 @@
 The app runs fully offline on the backend, without any cloud APIs, user accounts, or internet-based AI services for **FREE**. Users interact through a web browser, and all document processing and AI chatbot functionality is powered by local, open-source software.
 
 ## ⚙ What Alibi Does:
-### 📸 Image Translator (Image → Translated Image)
+### Image Translator (Image → Translated Image)
 Users can upload pictures of physical documents - such as medical records, legal notices, or government forms. Alibi will:
 * Extract all visible English text from the image
 * Translate it to the user's chosen language
 * Rebuild the image with translated text in place of the original text
 * Return the new translated image to the browser for viewing/download
 
-### 🈯 Multilingual Document Assistant (Chatbot)
+### Multilingual Document Assistant (Chatbot)
 Users can ask questions in **any language** - and the chatbot will:
 * Automatically detect and translate the message into English
 * Generate a clear, simple response using a **locally hosted LLM**
@@ -35,9 +35,9 @@ All processing happens in your own backend - **no external APIs for document tra
 |----------------------------|------------------------------------------|
 | 🌐 Frontend                | React, Vite, HTML/CSS/JavaScript         |
 | ⚙️ Backend (Document Translator) | Python + Flask                     |
-| ⚙️ Backend (Chatbot)       | Python + FastAPI + Uvicorn               |
-| 🔍 OCR                     | Google Cloud Vision API                  |
-| 🌍 Translation             | DeepL API, Google Translate API          |
+| ⚙️ Backend (Chatbot)       | Python + FastAPI + Uvicorn + Gemini API  |
+| 🔍 OCR                     | Pytesseract               |
+| 🌍 Translation             | DeepL API          |
 | 🖼️ Image Processing        | Pillow (PIL)                             |
 | 📦 Package Management      | pip (Python), npm (JavaScript)           |
 
@@ -51,14 +51,40 @@ All processing happens in your own backend - **no external APIs for document tra
 * Internet access (for API calls)
 
 ---
-### Setup Instructions
+### Setup Instructions (Make sure all terminal windows are opened in your code editor with the same root directory)
+### You may want to create a virtual environment for managing the required packages and libraries from the requirements.txt files
 
 1. **Clone the Repo**
 ```bash
 git clone https://github.com/Achak0120/Alibi.git
 ```
+
 2. **Install requirements.txt**
 ```bash
+cd Alibi
 pip install -r backend/NLP_chatbot/requirements.txt
 pip install -r requirements.txt
+```
 
+3. **Run the Document Translator Backend** (Open a new terminal window --> Terminal 1)
+```bash
+cd backend/document_translator
+python server.py
+```
+
+4. ** Run the Chatbot Backend** (Open a new terminal window --> Terminal 2, but keep all previous terminal windows open)
+```bash
+cd backend/NLP_chatbot
+uvicorn main:app --host 0.0.0.0 --port 5001 --reload
+```
+
+5. **Run the Frontend** (Open a new terminal window --> Terminal 3, but keep all previous terminal windows open)
+```bash
+cd frontend
+npm install  (only do once, either globally or in your virtual environment)
+npm run dev
+```
+
+6. **Navigate to Project Frontend via URL in your search engine**
+> The most common port to enter the project is (*http://localhost:5173/*)
+> To make sure you are in the correct port url, check the terminal output in terminal 3 after you complete **Step 5** and travel to that URL
