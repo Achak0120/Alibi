@@ -75,7 +75,7 @@ python server.py
 4. ** Run the Chatbot Backend** (Open a new terminal window --> Terminal 2, but keep all previous terminal windows open)
 ```bash
 cd backend/NLP_chatbot
-uvicorn main:app --host 0.0.0.0 --port 5001 --reload
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 5. **Run the Frontend** (Open a new terminal window --> Terminal 3, but keep all previous terminal windows open)
