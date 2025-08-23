@@ -17,7 +17,6 @@ from PIL import Image
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")
 
 app = FastAPI(title="Document QA Chatbot")
-from collections import defaultdict
 SESSION_LANG = defaultdict(lambda: "en")
 SESSION_HISTORY = defaultdict(lambda: deque(maxlen=5))
 SESSION_DOC = defaultdict(lambda: None)
@@ -148,7 +147,7 @@ def chat(req: ChatRequest):
         else:
             messages.append(f"Assistant: {turn['content']}")
     
-    # gemini multimodel call
+    # gemini multimodal call
     try:
         result = model.generate_content(messages)
         reply = (getattr(result, "text", "") or "").strip()
