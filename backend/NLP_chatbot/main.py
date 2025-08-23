@@ -1,5 +1,6 @@
 import os
 import io
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -11,10 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from PIL import Image
 
-# --- CORS ---
+# CORS
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")
 
 app = FastAPI(title="Document QA Chatbot")
+from collections import defaultdict
+SESSION_LANG = defaultdict(lambda: "en")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[FRONTEND_ORIGIN] if FRONTEND_ORIGIN != "*" else ["*"],
@@ -23,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Gemini setup ---
+# Gemini setup
 import google.generativeai as genai
 from dotenv import load_dotenv
 load_dotenv()
@@ -42,6 +45,11 @@ DOC_DIR = BACKEND_DIR / "document_translator" / "document_translator"
 OUTPUT_DIR = DOC_DIR / "output"
 INPUT_DIR  = DOC_DIR / "input"
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+logger= logging.getLogger(__name__)
 class ChatRequest(BaseModel):
     message: str
     image_filename: Optional[str] = None          # optional: specific file
@@ -72,18 +80,23 @@ def _load_image_bytes(path: Path) -> tuple[bytes, str]:
         }.get(fmt, "image/png")
         return data, mime
 
-def _resolve_lang(user_msg: str, preferred: Optional[str]) -> str:
-    """
-    Returns a BCP-47-ish 2-letter code where possible (e.g., 'en','es','bn').
-    If preferred is provided and not 'auto', use it. Otherwise try to detect;
-    fall back to 'en' on failure.
-    """
+def _resolve_lang(user_msg: str, preferred: Optional[str], user_id: str) -> str:
     if preferred and preferred.lower() != "auto":
-        return preferred.lower()
+        lang = preferred.lower()
+        SESSION_LANG[user_id] = lang
+        return lang
+    
+    if user_id in SESSION_LANG and SESSION_LANG[user_id] != "en":
+        return SESSION_LANG[user_id]
+
     try:
-        return detect(user_msg).lower()
-    except Exception:
+        lang = detect(user_msg).lower()
+        SESSION_LANG[user_id] = lang
+        return lang
+    except Exception as e:
+        logger.warning(f"Language detection failed for '{user_msg}': {e}")
         return "en"
+
 
 @app.post("/api/chat")
 def chat(req: ChatRequest):
@@ -97,7 +110,8 @@ def chat(req: ChatRequest):
 
     img_bytes, mime = _load_image_bytes(img_path)
     user_q = (req.message or "").strip()
-    target_lang = _resolve_lang(user_q, req.target_lang)
+    user_id = "anon"
+    target_lang = _resolve_lang(user_q, req.target_lang, user_id)
 
     # System prompt: grounded, concise, reply in target_lang
     system_instruction = (

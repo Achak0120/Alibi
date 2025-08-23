@@ -6,3 +6,4 @@ google-generativeai
 Pillow
 python-dotenv
 langdetect
+logging
