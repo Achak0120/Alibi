@@ -126,6 +126,7 @@ def chat(req: ChatRequest):
         "If the answer is not visible, say you cannot find it. "
         f"Always respond in the user's language: {target_lang}. "
         "Use clear, simple wording and keep answers concise."
+        "If the user's question is general (not directly in the document), answer politely using your own knowledge, but clearly mark it as general information and not from the document."
     )
 
     # Gemini multimodal call
