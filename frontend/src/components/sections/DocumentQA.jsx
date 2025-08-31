@@ -88,7 +88,7 @@ const DocumentQA = () => {
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center space-x-2 text-3xl font-bold">
             <Sparkles className="w-8 h-8 text-purple-400" />
-            <span>Ask Your Document Anything</span>
+            <span>Ask AliBot Anything</span>
           </CardTitle>
           <CardDescription>Get simple answers about your legal, financial, or medical documents.</CardDescription>
         </CardHeader>
