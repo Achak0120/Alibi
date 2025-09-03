@@ -22,12 +22,10 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\Aishik C\Desktop\visio
 AZ_T_ENDPOINT = os.getenv("AZURE_TRANSLATOR_ENDPOINT", "").rstrip("/")
 AZ_T_KEY = os.getenv("AZURE_TRANSLATOR_KEY")
 AZ_T_REGION = os.getenv("AZURE_TRANSLATOR_REGION")
-DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")  # optional for fallback
+DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
 
 
-# ------------------------
 # Normalizers & helpers
-# ------------------------
 def normalize_lang_code(code: str) -> str:
     """Canonicalize to simple, lowercase ISO 639-1 two-letter where possible."""
     if not code:
@@ -101,9 +99,7 @@ def get_font_by_lang(lang_code: str, size: int = 20):
     return ImageFont.load_default()
 
 
-# ------------------------
 # Provider support discovery
-# ------------------------
 @lru_cache(maxsize=1)
 def azure_supported_targets():
     """Fetch Azure Translator supported targets once (empty if not configured)."""
@@ -163,9 +159,7 @@ def provider_chain_for(dest: str):
     return chain
 
 
-# ------------------------
 # OCR
-# ------------------------
 def preprocess_image_for_ocr(image_path):
     image = Image.open(image_path).convert("RGB")
     gray_image = ImageOps.grayscale(image)
@@ -192,9 +186,7 @@ def perform_ocr_with_google_vision(image_path):
     return extracted_text_boxes
 
 
-# ------------------------
-# Text layout / drawing
-# ------------------------
+# Text layout / coordinate-drawing
 def get_font(image, text, width, height, lang_code):
     font = None
     box = None
@@ -277,9 +269,7 @@ def replace_text_with_translation(image_path, translated_texts, text_boxes, lang
     return image
 
 
-# ------------------------
-# Providers
-# ------------------------
+# Lang Providers
 def _azure_headers():
     return {
         "Ocp-Apim-Subscription-Key": AZ_T_KEY,
@@ -358,9 +348,8 @@ def deepl_translate_batch(texts, src="EN", dest="FR"):
     return out
 
 
-# ------------------------
+
 # Fallback cascade
-# ------------------------
 def translate_with_fallbacks(texts, src_lang, dest_lang):
     """
     Try Azure → Google → DeepL for languages each provider supports.
@@ -400,13 +389,11 @@ def translate_with_fallbacks(texts, src_lang, dest_lang):
     return results
 
 
-# ------------------------
 # Main pipeline
-# ------------------------
 def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     extracted_text_boxes = perform_ocr_with_google_vision(image_path)
 
-    # Choose font by our internal map key
+    # Choose font by the internal map key
     norm = normalize_lang_code(target_lang)
     selected_lang_code = norm if norm in font_map else "en"
 
@@ -433,7 +420,7 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
         src_texts.append(final_text)
         index_map.append((idx, final_text))
 
-    # Translate (en → target) with provider fallback
+    # Translate (en -> target) with provider fallback
     dest = normalize_lang_code(target_lang)
     translations = translate_with_fallbacks(src_texts, src_lang="en", dest_lang=dest)
 
@@ -450,9 +437,7 @@ def translate_image_pipeline(image_path, output_path, target_lang, font_map):
     image.save(output_path)
 
 
-# ------------------------
 # Script entry
-# ------------------------
 if __name__ == "__main__":
     input_folder = "input"
     output_folder = "output"
