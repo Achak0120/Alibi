@@ -3,6 +3,8 @@ import io
 import logging
 from pathlib import Path
 from typing import Optional
+import requests
+from dotenv import load_dotenv
 
 from langdetect import detect, DetectorFactory
 DetectorFactory.seed = 0  # deterministic language detection
@@ -12,6 +14,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from collections import defaultdict, deque
 from pydantic import BaseModel
 from PIL import Image
+
+# Load .env
+load_dotenv()
 
 # CORS
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")
@@ -28,35 +33,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gemini setup
-import google.generativeai as genai
-from dotenv import load_dotenv
-load_dotenv()
-
+# Gemini setup (REST API instead of SDK)
 GEMINI_KEY = os.getenv("GOOGLE_API_KEY")
 if not GEMINI_KEY:
     raise RuntimeError("Missing GOOGLE_API_KEY in .env")
 
-genai.configure(api_key=GEMINI_KEY)
-# Fast + cost‑effective + multimodal
-model = genai.GenerativeModel("gemini-1.5-flash")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent"
 
 # Paths from your pipeline (point to .../CareBridge/backend/document_translator)
 BACKEND_DIR = Path(__file__).resolve().parents[1]  # .../CareBridge/backend
 DOC_DIR = BACKEND_DIR / "document_translator" / "document_translator"
 OUTPUT_DIR = DOC_DIR / "output"
-INPUT_DIR  = DOC_DIR / "input"
+INPUT_DIR = DOC_DIR / "input"
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
-logger= logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+
 class ChatRequest(BaseModel):
     message: str
     image_filename: Optional[str] = None          # optional: specific file
     source: Optional[str] = "output"              # "output" or "input"
     target_lang: Optional[str] = "auto"           # e.g., "bn", "es", "ar", or "auto"
+
 
 def _latest_image(folder: Path) -> Path:
     candidates = []
@@ -66,6 +68,7 @@ def _latest_image(folder: Path) -> Path:
         raise FileNotFoundError(f"No images found in {folder}")
     # newest by modified time
     return max(candidates, key=lambda p: p.stat().st_mtime)
+
 
 def _load_image_bytes(path: Path) -> tuple[bytes, str]:
     # ensure it's a valid image and grab a mime
@@ -82,12 +85,13 @@ def _load_image_bytes(path: Path) -> tuple[bytes, str]:
         }.get(fmt, "image/png")
         return data, mime
 
+
 def _resolve_lang(user_msg: str, preferred: Optional[str], user_id: str) -> str:
     if preferred and preferred.lower() != "auto":
         lang = preferred.lower()
         SESSION_LANG[user_id] = lang
         return lang
-    
+
     if user_id in SESSION_LANG and SESSION_LANG[user_id] != "en":
         return SESSION_LANG[user_id]
 
@@ -100,6 +104,22 @@ def _resolve_lang(user_msg: str, preferred: Optional[str], user_id: str) -> str:
         return "en"
 
 
+def gemini_generate(messages: list[str]) -> str:
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [{"parts": [{"text": "\n".join(messages)}]}]
+    }
+    try:
+        resp = requests.post(url, headers=headers, json=data)
+        resp.raise_for_status()
+        out = resp.json()
+        return out["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception as e:
+        logger.error(f"Gemini REST call failed: {e} - {resp.text if 'resp' in locals() else ''}")
+        return "Sorry, I couldn't extract an answer from the document."
+
+
 @app.post("/api/chat")
 def chat(req: ChatRequest):
     user_id = "anon"
@@ -110,7 +130,7 @@ def chat(req: ChatRequest):
             raise FileNotFoundError(f"{img_path} not found.")
     else:
         img_path = _latest_image(folder)
-    
+
     current_doc = str(img_path.name)
     if SESSION_DOC[user_id] != current_doc:
         SESSION_HISTORY[user_id].clear()
@@ -120,50 +140,37 @@ def chat(req: ChatRequest):
     user_q = (req.message or "").strip()
     target_lang = _resolve_lang(user_q, req.target_lang, user_id)
 
-    # System prompt: grounded, concise, reply in target_lang
+    # System prompt
     system_instruction = (
         "You are a careful assistant. Only answer using information visible in the image. "
         f"Always respond in the user's language: {target_lang}. "
-        "Use clear, simple wording and keep answers concise."
-        "If the user's question is general (not directly in the document), answer politely using your own knowledge, but clearly mark it as general information and not from the document."
+        "Use clear, simple wording and keep answers concise. "
+        "If the user's question is general (not directly in the document), answer politely using your own knowledge, "
+        "but clearly mark it as general information and not from the document."
     )
 
-    # Gemini multimodal call
+    # Conversation history
     history = SESSION_HISTORY[user_id]
-    
-    # add the new user message into history
     history.append({"role": "user", "content": user_q})
-    
-    # start convo with system + image
-    messages = [
-        system_instruction,
-        {"mime_type": mime, "data":img_bytes},
-    ]
-    
-    # add history turns
+
+    # Flatten into messages for Gemini
+    messages = [system_instruction]
     for turn in history:
-        if turn["role"] == "user":
-            messages.append(f"User: {turn['content']}")
-        else:
-            messages.append(f"Assistant: {turn['content']}")
-    
-    # gemini multimodal call
-    try:
-        result = model.generate_content(messages)
-        reply = (getattr(result, "text", "") or "").strip()
-    except Exception as e:
-        logger.error(f"Gemini call failed: {e}")
-        reply = "Sorry, I couldn't extract an answer from the document."
-        
+        prefix = "User" if turn["role"] == "user" else "Assistant"
+        messages.append(f"{prefix}: {turn['content']}")
+
+    reply = gemini_generate(messages).strip()
+
     history.append({"role": "assistant", "content": reply})
     SESSION_HISTORY[user_id] = history
+
     return {
         "reply": reply,
         "image_used": str(img_path.name),
         "target_lang": target_lang
     }
 
-# Simple health check
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
